@@ -2,11 +2,27 @@
 # project specific logic here.
 #
 
-# Add source to this project's executable.
-add_executable (TNCG15 "main.cpp" "TNCG15.h")
 
+# Add source to this project's executable.
+
+
+add_executable(TNCG15 src/main.cpp src/TNCG15.cpp  src/Triangle.cpp src/Polygon.cpp src/Ray.cpp src/Rectangle.cpp src/Triangle.h src/TNCG15.h src/Polygon.h src/Ray.h src/Rectangle.h)
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET TNCG15 PROPERTY CXX_STANDARD 20)
 endif()
 
 # TODO: Add tests and install targets if needed.
+function(enable_warnings target)
+    target_compile_options(${target} PUBLIC 
+        $<$<CXX_COMPILER_ID:MSVC>:
+            /W4                 # Enable the highest warning level
+            /w44388             # eneble 'signed/unsigned mismatch' '(off by default)
+            /we4715             # turn 'not all control paths return a value' into a compile error
+            /permissive-        # Stick to the standard
+			/fsanitize=address  # Enable the Address Sanatizer, helps finding bugs at runtime
+            >
+        $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wall -Wextra>
+    )
+endfunction()
+
+
