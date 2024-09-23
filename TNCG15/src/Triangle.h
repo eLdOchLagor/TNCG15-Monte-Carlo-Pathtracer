@@ -5,10 +5,11 @@
 #include <random>
 #include <span>
 #include <math.h>
+#include "Polygon.h"
 
 namespace Triangle {
 	
-	class Triangle {
+	class Triangle : public Polygon::Polygon{
 	public:
 
 

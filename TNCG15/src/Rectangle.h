@@ -1,5 +1,12 @@
 #pragma once
-class Rectangle
-{
-};
+
+#include "Polygon.h"
+
+
+namespace Rectangle {
+	class Rectangle : public Polygon::Polygon{
+		
+	};
+
+}
 
