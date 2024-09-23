@@ -7,19 +7,17 @@
 #include <math.h>
 #include "Polygon.h"
 
+
 namespace Triangle {
 	
 	class Triangle : public Polygon::Polygon{
 	public:
 
+		Triangle(const std::vector<glm::vec3>& all_points) {Polygon::verticies = all_points;}
 
-		Triangle(std::vector<double> point);
-
-		std::vector<double> get_Points() {
-			return points;
-		}
+		
 	private:
-		std::vector<double> points;
+
 	};
 
 	
