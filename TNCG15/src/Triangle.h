@@ -8,15 +8,14 @@
 #include "Polygon.h"
 
 
-namespace Triangle {
-	
-	class Triangle : public Polygon::Polygon{
+
+	class Triangle : public Polygon{
 	public:
 
 		Triangle(const glm::vec3& point1, const glm::vec3& point2, const glm::vec3& point3, const glm::vec3& col) {
-			Polygon::verticies.push_back(point1);
-			Polygon::verticies.push_back(point2);
-			Polygon::verticies.push_back(point3);
+			verticies.push_back(point1);
+			verticies.push_back(point2);
+			verticies.push_back(point3);
 			color = col;
 		}
 
@@ -28,5 +27,5 @@ namespace Triangle {
 	
 
 
-}
+
 

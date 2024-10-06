@@ -1,7 +1,8 @@
+#pragma once
 #include <glm/glm.hpp>
 
 
-namespace Ray {	
+
 	class Ray {
 	public:
 		
@@ -15,4 +16,3 @@ namespace Ray {
 		Ray* next_ray;
 
 	};
-}

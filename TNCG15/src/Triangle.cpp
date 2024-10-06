@@ -1,10 +1,5 @@
-
+#pragma once
 
 #include "Triangle.h"
 
 
-namespace Triangle{
-
-	
-
-}

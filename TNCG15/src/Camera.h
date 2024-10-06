@@ -3,7 +3,7 @@
 #include <vector>
 #include <glm/glm.hpp>
 
-namespace Camera {
+
 	class Camera
 	{
 	public:
@@ -32,6 +32,6 @@ namespace Camera {
 		
 
 	};
-}
+
 
 

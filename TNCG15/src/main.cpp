@@ -8,49 +8,49 @@
 #include <fstream>
 #include <vector>
 
-using namespace std;
+
 
 int main()
 {
-	cout << "Hello CMake." << endl;
+	std::cout << "Hello CMake." << std::endl;
 	const int imageWidth = 800;
 	const int imageHeight = 800;
-	Camera::Camera mainCamera(glm::vec3(0,0,0), glm::vec3(0,0,-1), glm::vec3(0,1,0), 3.14159f/4.0f,(float)imageWidth/imageHeight); //TODO: fixa så att aspectRatio och fov beräknas i constructorn istället
+	Camera mainCamera(glm::vec3(0,0,0), glm::vec3(0,0,-1), glm::vec3(0,1,0), 3.14159f/4.0f,(float)imageWidth/imageHeight); //TODO: fixa så att aspectRatio och fov beräknas i constructorn istället
 	
 	// Floor ----------------------------------------------------------------------------------------
-	Rectangle::Rectangle floor1(glm::vec3(0,6,-5), glm::vec3(10,6,-5), glm::vec3(10,-6,-5), glm::vec3(0,-6,-5),glm::vec3(255,0,0));
-	Triangle::Triangle floor2(glm::vec3(10, 6, -5), glm::vec3(13, 0, -5), glm::vec3(10, -6, -5), glm::vec3(0, 255, 0));
-	Triangle::Triangle floor3(glm::vec3(0, 6, -5), glm::vec3(-3, 0, -5), glm::vec3(0, -6, -5), glm::vec3(0, 0, 255));
+	Rectangle floor1(glm::vec3(0,6,-5), glm::vec3(10,6,-5), glm::vec3(10,-6,-5), glm::vec3(0,-6,-5),glm::vec3(255,0,0));
+	Triangle floor2(glm::vec3(10, 6, -5), glm::vec3(13, 0, -5), glm::vec3(10, -6, -5), glm::vec3(0, 255, 0));
+	Triangle floor3(glm::vec3(0, 6, -5), glm::vec3(-3, 0, -5), glm::vec3(0, -6, -5), glm::vec3(0, 0, 255));
 	//-----------------------------------------------------------------------------------------------
 
 	// Roof -----------------------------------------------------------------------------------------
-	Rectangle::Rectangle roof1(glm::vec3(0, 6, 5), glm::vec3(10, 6, 5), glm::vec3(10, -6, 5), glm::vec3(0, -6, 5), glm::vec3(255, 0, 0));
-	Triangle::Triangle roof2(glm::vec3(10, 6, 5), glm::vec3(13, 0, 5), glm::vec3(10, -6, 5), glm::vec3(0, 255, 0));
-	Triangle::Triangle roof3(glm::vec3(0, 6, 5), glm::vec3(-3, 0, 5), glm::vec3(0, -6, 5), glm::vec3(0, 0, 255));
+	Rectangle roof1(glm::vec3(0, 6, 5), glm::vec3(10, 6, 5), glm::vec3(10, -6, 5), glm::vec3(0, -6, 5), glm::vec3(255, 0, 0));
+	Triangle roof2(glm::vec3(10, 6, 5), glm::vec3(13, 0, 5), glm::vec3(10, -6, 5), glm::vec3(0, 255, 0));
+	Triangle roof3(glm::vec3(0, 6, 5), glm::vec3(-3, 0, 5), glm::vec3(0, -6, 5), glm::vec3(0, 0, 255));
 	//-----------------------------------------------------------------------------------------------
 
 	// Walls ----------------------------------------------------------------------------------------
 	//bottom
-	Rectangle::Rectangle wall1(glm::vec3(-3, 0, 5), glm::vec3(-3, 0, -5), glm::vec3(0, -6, -5), glm::vec3(0, -6, 5), glm::vec3(255, 255, 0));
-	Rectangle::Rectangle wall2(glm::vec3(0, -6, 5), glm::vec3(0, -6, -5), glm::vec3(10, -6, -5), glm::vec3(10, -6, 5), glm::vec3(255, 255, 0));
-	Rectangle::Rectangle wall3(glm::vec3(10, 0, 5), glm::vec3(10, 0, -5), glm::vec3(13, -6, 0), glm::vec3(13, -6, 0), glm::vec3(255, 255, 0));
+	Rectangle wall1(glm::vec3(-3, 0, 5), glm::vec3(-3, 0, -5), glm::vec3(0, -6, -5), glm::vec3(0, -6, 5), glm::vec3(255, 255, 0));
+	Rectangle wall2(glm::vec3(0, -6, 5), glm::vec3(0, -6, -5), glm::vec3(10, -6, -5), glm::vec3(10, -6, 5), glm::vec3(255, 255, 0));
+	Rectangle wall3(glm::vec3(10, 0, 5), glm::vec3(10, 0, -5), glm::vec3(13, -6, 0), glm::vec3(13, -6, 0), glm::vec3(255, 255, 0));
 	//top
-	Rectangle::Rectangle wall4(glm::vec3(-3, 5, 5), glm::vec3(0, 6, 5), glm::vec3(0, 6, -5), glm::vec3(-3, 0, -5), glm::vec3(255, 0, 255));
-	Rectangle::Rectangle wall5(glm::vec3(0, 6, 5), glm::vec3(10, 6, 5), glm::vec3(10, 6, -5), glm::vec3(0, 6, -5), glm::vec3(255, 0, 255));
-	Rectangle::Rectangle wall4(glm::vec3(10, 6, 5), glm::vec3(13, 0, 5), glm::vec3(13, 0, -5), glm::vec3(10, 6, -5), glm::vec3(255, 0, 255));
+	Rectangle wall4(glm::vec3(-3, 5, 5), glm::vec3(0, 6, 5), glm::vec3(0, 6, -5), glm::vec3(-3, 0, -5), glm::vec3(255, 0, 255));
+	Rectangle wall5(glm::vec3(0, 6, 5), glm::vec3(10, 6, 5), glm::vec3(10, 6, -5), glm::vec3(0, 6, -5), glm::vec3(255, 0, 255));
+	Rectangle wall6(glm::vec3(10, 6, 5), glm::vec3(13, 0, 5), glm::vec3(13, 0, -5), glm::vec3(10, 6, -5), glm::vec3(255, 0, 255));
 	//-----------------------------------------------------------------------------------------------
 
-	vector<vector<glm::vec3>> frameBuffer;
+	std::vector<std::vector<glm::vec3>> frameBuffer;
 	
 	// Create and open a text file
-	ofstream OutputFile("render.ppm");
+	std::ofstream OutputFile("render.ppm");
 
 	// Setup PPM file settings
 	OutputFile << "P3\n# This is a render!\n" << imageWidth << " " << imageHeight << "\n255\n";
 
 	//Create image-matrix from raytrace
 	for (size_t y = 0; y < imageHeight; y++) {
-		vector<glm::vec3> row;
+		std::vector<glm::vec3> row;
 		for (size_t x = 0; x < imageWidth; x++) {
 			
 			float u = (2.0f * (x+0.5f)/imageWidth) - 1.0f;
