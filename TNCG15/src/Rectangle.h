@@ -17,6 +17,11 @@
 			verticies.push_back(point3);
 			verticies.push_back(point4);
 			color = col;
+			normal = glm::cross(point3 - point1, point2 - point1);
+		}
+
+		Polygon* surfaceIntersectionTest(glm::vec3 start_point, glm::vec3 dir) {
+
 		}
 
 	private:

@@ -17,6 +17,7 @@
 			verticies.push_back(point2);
 			verticies.push_back(point3);
 			color = col;
+			normal = glm::cross(point3 - point1, point2 - point1);
 		}
 
 		
