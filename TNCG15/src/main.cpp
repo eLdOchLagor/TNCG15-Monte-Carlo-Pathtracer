@@ -12,7 +12,6 @@
 
 int main()
 {
-	std::cout << "Hello CMake." << std::endl;
 	const int imageWidth = 800;
 	const int imageHeight = 800;
 	const glm::vec3 cam_pos(0, 0, 0);
@@ -69,6 +68,7 @@ int main()
 
 	//Create image-matrix from raytrace
 	for (size_t z = 0; z < imageHeight; z++) {
+		std::clog << "\rScanlines remaining: " << (imageHeight - z) << ' ' << std::flush;
 		std::vector<glm::vec3> row;
 		for (size_t y = 0; y < imageWidth; y++) {
 			
@@ -92,6 +92,7 @@ int main()
 
 	//Write imageFile from image-matrix
 	for (size_t y = 0; y < imageHeight; y++) {
+
 		for (size_t x = 0; x < imageWidth; x++) {
 
 			OutputFile << frameBuffer[y][x][0] << " ";
