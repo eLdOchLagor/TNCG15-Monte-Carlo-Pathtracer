@@ -20,6 +20,7 @@
 			normal = glm::cross(point3 - point1, point2 - point1);
 		}
 
+		void surfaceIntersectionTest(Ray& r) override {};
 		
 	private:
 

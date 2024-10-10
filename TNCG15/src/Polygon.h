@@ -1,6 +1,8 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <vector>
+#include "Ray.h"
+
 
 
 	class Polygon {
@@ -10,11 +12,7 @@
 		glm::vec3 color;
 		glm::vec3 normal;
 
-		
-
-		const std::vector<glm::vec3>& get_verticies() {
-			return verticies;
-		}
+		virtual void surfaceIntersectionTest(Ray& r) {};
 		
 	protected:
 		
