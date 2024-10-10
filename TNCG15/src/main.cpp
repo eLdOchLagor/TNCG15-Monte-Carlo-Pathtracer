@@ -18,13 +18,13 @@ int main()
 	const glm::vec3 cam_pos(0, 0, 0);
 	const glm::vec3 cam_up(0,0,1);
 	const glm::vec3 cam_forward(1,0,0);
-	const float cam_fov = 3.14159f / 4.0f;
+	const float cam_fov = 100;
 	Camera mainCamera(cam_pos, cam_forward, cam_up, cam_fov,(float)imageWidth/imageHeight); //TODO: fixa så att aspectRatio och fov beräknas i constructorn istället
 
 	std::vector<Polygon*> scene;
 
 	// Floor ----------------------------------------------------------------------------------------
-	Rectangle* floor1 = new Rectangle(glm::vec3(0,6,-5), glm::vec3(10,6,-5), glm::vec3(10,-6,-5), glm::vec3(0,-6,-5),glm::vec3(0,255,0));
+	Rectangle* floor1 = new Rectangle(glm::vec3(10,6,-5), glm::vec3(0,6,-5), glm::vec3(0,-6,-5), glm::vec3(10,-6,-5),glm::vec3(0,0,255));
 	Triangle* floor2 = new Triangle(glm::vec3(10, 6, -5), glm::vec3(13, 0, -5), glm::vec3(10, -6, -5), glm::vec3(0, 255, 0));
 	Triangle* floor3 = new Triangle(glm::vec3(0, 6, -5), glm::vec3(-3, 0, -5), glm::vec3(0, -6, -5), glm::vec3(0, 255, 0));
 	scene.push_back(floor1);
