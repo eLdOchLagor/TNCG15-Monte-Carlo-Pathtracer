@@ -40,13 +40,9 @@
 				// If intersectionPoint is a valid point on the surface
 				if (0.0 <= a && a <= 1.0 && 0.0 <= b && b <= 1.0)
 				{
-					//std::cout << a << " " << b << "\n";
-					//std::cout << "Hit a surface";
 					r.hit_surface = this;
 					r.end_point = intersectionPoint;
 					r.radiance = color;
-					//std::cout << color.g;
-					//std::cout << a << " " << b << "\n";
 				}
 				
 			}

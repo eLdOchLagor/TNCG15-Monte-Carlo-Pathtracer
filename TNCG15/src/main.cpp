@@ -24,8 +24,8 @@ int main()
 
 	// Floor ----------------------------------------------------------------------------------------
 	Rectangle* floor1 = new Rectangle(glm::vec3(10,6,-5), glm::vec3(0,6,-5), glm::vec3(0,-6,-5), glm::vec3(10,-6,-5),glm::vec3(0,0,255));
-	Triangle* floor2 = new Triangle(glm::vec3(10, 6, -5), glm::vec3(13, 0, -5), glm::vec3(10, -6, -5), glm::vec3(0, 255, 0));
-	Triangle* floor3 = new Triangle(glm::vec3(0, 6, -5), glm::vec3(-3, 0, -5), glm::vec3(0, -6, -5), glm::vec3(0, 255, 0));
+	Triangle* floor2 = new Triangle(glm::vec3(0, 6, -5), glm::vec3(-3, 0, -5), glm::vec3(0, -6, -5), glm::vec3(255, 255, 0));
+	Triangle* floor3 = new Triangle(glm::vec3(10, 6, -5), glm::vec3(10, -6, -5), glm::vec3(13, 0, -5), glm::vec3(0, 255, 255));
 	scene.push_back(floor1);
 	scene.push_back(floor2);
 	scene.push_back(floor3);
@@ -33,8 +33,8 @@ int main()
 
 	// Roof -----------------------------------------------------------------------------------------
 	Rectangle* roof1 = new Rectangle(glm::vec3(0, 6, 5), glm::vec3(10, 6, 5), glm::vec3(10, -6, 5), glm::vec3(0, -6, 5), glm::vec3(0, 255, 0));
-	Triangle* roof2 = new Triangle(glm::vec3(10, 6, 5), glm::vec3(13, 0, 5), glm::vec3(10, -6, 5), glm::vec3(0, 255, 0));
-	Triangle* roof3 = new Triangle(glm::vec3(0, 6, 5), glm::vec3(-3, 0, 5), glm::vec3(0, -6, 5), glm::vec3(0, 255,0));
+	Triangle* roof2 = new Triangle(glm::vec3(0, -6, 5), glm::vec3(-3, 0, 5), glm::vec3(0, 6, 5), glm::vec3(255, 0, 0));
+	Triangle* roof3 = new Triangle(glm::vec3(10, -6, 5), glm::vec3(10, 6, 5), glm::vec3(13, 0, 5), glm::vec3(0, 255,255));
 	scene.push_back(roof1);
 	scene.push_back(roof2);
 	scene.push_back(roof3);
