@@ -11,18 +11,18 @@
 
 int main()
 {
-	const int imageWidth = 800;
-	const int imageHeight = 800;
+	const int imageWidth = 1600;
+	const int imageHeight = 1600;
 	const glm::vec3 cam_pos(0, 0, 0);
 	const glm::vec3 cam_up(0,0,1);
 	const glm::vec3 cam_forward(1,0,0);
-	const float cam_fov = 100;
+	const float cam_fov = 80;
 	Camera mainCamera(cam_pos, cam_forward, cam_up, cam_fov,(float)imageWidth/imageHeight); //TODO: fixa så att aspectRatio och fov beräknas i constructorn istället
 
 	std::vector<Polygon*> scene;
 
 	// Floor ----------------------------------------------------------------------------------------
-	Rectangle* floor1 = new Rectangle(glm::vec3(10,6,-5), glm::vec3(0,6,-5), glm::vec3(0,-6,-5), glm::vec3(10,-6,-5),glm::vec3(0.8,0.92,0.8));
+	Rectangle* floor1 = new Rectangle(glm::vec3(10,6,-5), glm::vec3(0,6,-5), glm::vec3(0,-6,-5), glm::vec3(10,-6,-5),glm::vec3(0.6,0.92,0.8));
 	Triangle* floor2 = new Triangle(glm::vec3(0, 6, -5), glm::vec3(-3, 0, -5), glm::vec3(0, -6, -5), glm::vec3(1.0, 1.0, 0));
 	Triangle* floor3 = new Triangle(glm::vec3(10, 6, -5), glm::vec3(10, -6, -5), glm::vec3(13, 0, -5), glm::vec3(0, 1.0, 1.0));
 	scene.push_back(floor1);
@@ -31,7 +31,7 @@ int main()
 	//-----------------------------------------------------------------------------------------------
 
 	// Roof -----------------------------------------------------------------------------------------
-	Rectangle* roof1 = new Rectangle(glm::vec3(0, 6, 5), glm::vec3(10, 6, 5), glm::vec3(10, -6, 5), glm::vec3(0, -6, 5), glm::vec3(0, 1.0, 0));
+	Rectangle* roof1 = new Rectangle(glm::vec3(0, 6, 5), glm::vec3(10, 6, 5), glm::vec3(10, -6, 5), glm::vec3(0, -6, 5), glm::vec3(0, 0, 1.0));
 	Triangle* roof2 = new Triangle(glm::vec3(0, -6, 5), glm::vec3(-3, 0, 5), glm::vec3(0, 6, 5), glm::vec3(1.0, 0, 0));
 	Triangle* roof3 = new Triangle(glm::vec3(10, -6, 5), glm::vec3(10, 6, 5), glm::vec3(13, 0, 5), glm::vec3(0, 1.0, 1.0));
 	scene.push_back(roof1);
@@ -43,15 +43,15 @@ int main()
 	//bottom
 	Rectangle* wall1 = new Rectangle(glm::vec3(-3, 0, 5), glm::vec3(0, -6, 5), glm::vec3(0, -6, -5), glm::vec3(-3, 0, -5), glm::vec3(0, 1.0, 0));
 	Rectangle* wall2 = new Rectangle(glm::vec3(0, -6, 5), glm::vec3(10, -6, 5), glm::vec3(10, -6, -5), glm::vec3(0, -6, -5), glm::vec3(1.0, 0, 0));
-	Rectangle* wall3 = new Rectangle(glm::vec3(10, -6, 5), glm::vec3(13, 0, 5), glm::vec3(13, 0, -5), glm::vec3(10, -6, -5), glm::vec3(1.0, 1.0, 0)); //Målvägg höger //looking at
+	Rectangle* wall3 = new Rectangle(glm::vec3(10, -6, 5), glm::vec3(13, 0, 5), glm::vec3(13, 0, -5), glm::vec3(10, -6, -5), glm::vec3(1.0, 1.0, 1.0), true); //Målvägg höger //looking at
 	scene.push_back(wall1);
 	scene.push_back(wall2);
 	scene.push_back(wall3);
 
 	//top
-	Rectangle* wall4 = new Rectangle(glm::vec3(-3, 0, 5), glm::vec3(-3, 0, -5), glm::vec3(0, 6, -5), glm::vec3(0, 6, 5), glm::vec3(0, 0, 0)); 
+	Rectangle* wall4 = new Rectangle(glm::vec3(-3, 0, 5), glm::vec3(-3, 0, -5), glm::vec3(0, 6, -5), glm::vec3(0, 6, 5), glm::vec3(1.0, 0.5, 0.5)); 
 	Rectangle* wall5 = new Rectangle(glm::vec3(0, 6, 5), glm::vec3(0, 6, -5), glm::vec3(10, 6, -5), glm::vec3(10, 6, 5), glm::vec3(0, 1.0, 0));
-	Rectangle* wall6 = new Rectangle(glm::vec3(10, 6, 5), glm::vec3(10, 6, -5), glm::vec3(13, 0, -5), glm::vec3(13, 0, 5), glm::vec3(1.0, 0, 1.0)); //Målvägg vänster //looking at
+	Rectangle* wall6 = new Rectangle(glm::vec3(10, 6, 5), glm::vec3(10, 6, -5), glm::vec3(13, 0, -5), glm::vec3(13, 0, 5), glm::vec3(1.0, 1.0, 1.0), true); //Målvägg vänster //looking at
 	scene.push_back(wall4);
 	scene.push_back(wall5);
 	scene.push_back(wall6);

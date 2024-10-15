@@ -35,6 +35,34 @@
 			return firstRay;
 		}
 
+		Ray shootNextRay(Ray& prevRay, const std::vector<Polygon*>& objects) {
+			for (Polygon* temp : objects)
+			{
+
+				Polygon* surface = temp->surfaceIntersectionTest(prevRay);
+				if (surface != nullptr) {
+					prevRay.hit_surface = surface;
+					break;
+				}
+				
+			}
+
+			if (prevRay.hit_surface->mirror == 1) {
+				glm::vec3 d_o = glm::normalize(prevRay.direction) - 2 * glm::dot(glm::normalize(prevRay.direction), prevRay.hit_surface->normal) * prevRay.hit_surface->normal;
+				glm::vec3 startPoint = prevRay.end_point;
+				glm::vec3 importance = prevRay.radiance;
+				Ray newRay{startPoint, d_o, importance};
+				newRay.previous_ray = &prevRay;
+				prevRay.next_ray = &newRay;
+				shootNextRay(newRay, objects);
+				prevRay.radiance = newRay.radiance;
+			}
+			
+			
+			return prevRay;
+			
+		}
+
 		void render(const std::vector<Polygon*>& objects, int width, int height) {
 			std::vector<std::vector<glm::vec3>> frameBuffer;
 
@@ -54,11 +82,12 @@
 					float v = 1.0f - (2.0f * (z + 0.5f) / height);
 
 					Ray firstRay = shootStartRay(glm::vec3(-1.0, 0.0, 0.0), u, v);
-
-					for (Polygon* temp : objects)
-					{
-						temp->surfaceIntersectionTest(firstRay);
-					}
+					shootNextRay(firstRay, objects);
+					
+					
+					
+					
+					
 
 					//std::cout << firstRay.radiance.x << " " << firstRay.radiance.y << " " << firstRay.radiance.z << "\n";
 

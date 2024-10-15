@@ -11,8 +11,9 @@
 		std::vector<glm::vec3> verticies;
 		glm::vec3 color;
 		glm::vec3 normal;
+		bool mirror;
 
-		virtual void surfaceIntersectionTest(Ray& r) {};
+		virtual Polygon* surfaceIntersectionTest(Ray& r) { return nullptr; };
 		
 	protected:
 		

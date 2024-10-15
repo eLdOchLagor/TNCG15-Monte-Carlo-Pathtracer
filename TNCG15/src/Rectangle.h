@@ -11,16 +11,17 @@
 	class Rectangle : public Polygon{
 	public:
 
-		Rectangle(const glm::vec3& point1, const glm::vec3& point2, const glm::vec3& point3, const glm::vec3& point4,const glm::vec3& col)   {
+		Rectangle(const glm::vec3& point1, const glm::vec3& point2, const glm::vec3& point3, const glm::vec3& point4,const glm::vec3& col, const bool mir = false)   {
 			verticies.push_back(point1);
 			verticies.push_back(point2);
 			verticies.push_back(point3);
 			verticies.push_back(point4);
 			color = col;
-			normal = glm::cross(point2 - point1, point4 - point1);
+			normal = glm::normalize(glm::cross(point2 - point1, point4 - point1));
+			mirror = mir;
 		}
 
-		void surfaceIntersectionTest(Ray& r) override {
+		Polygon* surfaceIntersectionTest(Ray& r) override {
 
 			glm::vec3 d = glm::normalize(r.direction);
 			glm::vec3 s = r.start_point;
@@ -40,12 +41,14 @@
 				// If intersectionPoint is a valid point on the surface
 				if (0.0 <= a && a <= 1.0 && 0.0 <= b && b <= 1.0)
 				{
-					r.hit_surface = this;
+					//r.hit_surface = this;
 					r.end_point = intersectionPoint;
 					r.radiance = color;
+					return this;
 				}
 				
 			}
+			return nullptr;
 		}
 
 	private:
