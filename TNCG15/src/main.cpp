@@ -5,7 +5,6 @@
 #include "Triangle.h"
 #include "Rectangle.h"
 #include "Camera.h"
-#include <fstream>
 #include <vector>
 
 
@@ -57,52 +56,8 @@ int main()
 	scene.push_back(wall5);
 	scene.push_back(wall6);
 	//-----------------------------------------------------------------------------------------------
-
-	std::vector<std::vector<glm::vec3>> frameBuffer;
 	
-	// Create and open a text file
-	std::ofstream OutputFile("render.ppm");
-
-	// Setup PPM file settings
-	OutputFile << "P3\n# This is a render!\n" << imageWidth << " " << imageHeight << "\n255\n";
-
-	//Create image-matrix from raytrace
-	for (size_t z = 0; z < imageHeight; z++) {
-		std::clog << "\rScanlines remaining: " << (imageHeight - z) << ' ' << std::flush;
-		std::vector<glm::vec3> row;
-		for (size_t y = 0; y < imageWidth; y++) {
-			
-			float u = (2.0f * (y+0.5f)/imageWidth) - 1.0f;
-			float v = 1.0f-(2.0f * (z + 0.5f)/imageHeight);
-
-			Ray firstRay = mainCamera.shootStartRay(glm::vec3(-1.0, 0.0, 0.0), u, v);
-
-			for (Polygon* temp : scene)
-			{
-				temp->surfaceIntersectionTest(firstRay);
-			}
-
-			//std::cout << firstRay.radiance.x << " " << firstRay.radiance.y << " " << firstRay.radiance.z << "\n";
-
-			row.push_back(firstRay.radiance); //TODO: replace with generateRay
-			//row.push_back((y % 2 == 0 ? glm::vec3(0, 0, 0) : glm::vec3(255, 255, 255))); //TODO: replace with generateRay
-		}
-		frameBuffer.push_back(row);
-	}
-
-	//Write imageFile from image-matrix
-	for (size_t y = 0; y < imageHeight; y++) {
-
-		for (size_t x = 0; x < imageWidth; x++) {
-
-			OutputFile << frameBuffer[y][x][0] << " ";
-			OutputFile << frameBuffer[y][x][1] << " ";
-			OutputFile << frameBuffer[y][x][2] << " ";
-		}
-		OutputFile << "\n";
-	}
-	// Close the file
-	OutputFile.close();
+	mainCamera.render(scene, imageHeight, imageHeight);
 
 	return 0;
 }
