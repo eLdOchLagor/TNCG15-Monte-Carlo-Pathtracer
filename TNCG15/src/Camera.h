@@ -68,14 +68,25 @@
 				frameBuffer.push_back(row);
 			}
 
-			//Write imageFile from image-matrix
+			// Find largest double in all pixels to normalize with
+			double largest = std::numeric_limits<double>::lowest();
+
+			for (const auto& row : frameBuffer) {
+				for (const auto& vec : row) {
+					largest = std::max(largest, static_cast<double>(vec.x));
+					largest = std::max(largest, static_cast<double>(vec.y));
+					largest = std::max(largest, static_cast<double>(vec.z));
+				}
+			}
+
+			//Write imageFile from frameBuffer
 			for (size_t y = 0; y < height; y++) {
 
 				for (size_t x = 0; x < width; x++) {
 
-					OutputFile << frameBuffer[y][x][0] << " ";
-					OutputFile << frameBuffer[y][x][1] << " ";
-					OutputFile << frameBuffer[y][x][2] << " ";
+					OutputFile << (int)((frameBuffer[y][x][0] / largest) * 255) << " ";
+					OutputFile << (int)((frameBuffer[y][x][1] / largest) * 255) << " ";
+					OutputFile << (int)((frameBuffer[y][x][2] / largest) * 255) << " ";
 				}
 				OutputFile << "\n";
 			}
