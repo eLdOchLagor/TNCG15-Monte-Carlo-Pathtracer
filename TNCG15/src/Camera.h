@@ -19,13 +19,14 @@
 		float fov;         // Field of view in radians
 		float aspectRatio; // Aspect ratio of the image (width / height)
 		float imagePlaneWidth, imagePlaneHeight; 
+		int widthPixels, heightPixels;
 
 		Rectangle* light = new Rectangle(glm::vec3(-2, -2, 5), glm::vec3(-2, 2, 5), glm::vec3(2, 2, 5), glm::vec3(2, -2, 5), glm::vec3(1.0, 1.0, 1.0));
 
 		std::vector<Polygon*> objects;
 
-		Camera(glm::vec3 pos, glm::vec3 fwd, glm::vec3 up, float fov, float aspect, std::vector<Polygon*> obj) : position(pos), forward(fwd), fov(fov), aspectRatio(aspect), objects(obj) {
-
+		Camera(glm::vec3 pos, glm::vec3 fwd, glm::vec3 up, float fov, int width, int height, std::vector<Polygon*> obj) : position(pos), forward(fwd), fov(fov), widthPixels{width}, heightPixels{height}, objects(obj) {
+			aspectRatio = (float)width / height;
 			right = glm::normalize(glm::cross(forward, up));
 			trueUp = glm::cross(right, forward);
 			imagePlaneHeight = 2.0f * tan(glm::radians(fov) / 2.0f);
@@ -36,7 +37,7 @@
 
 		Ray shootStartRay(glm::vec3 eye, float u, float v) {
 			//std::cout << right.y;
-			glm::vec3 direction = ((forward + position) + u * imagePlaneWidth * right + v * imagePlaneHeight * trueUp) - eye;
+			glm::vec3 direction = glm::normalize(forward + u * right + v * trueUp);
 			Ray firstRay = Ray(eye, direction, glm::vec3(1.0, 1.0, 1.0));
 
 			return firstRay;
@@ -129,23 +130,23 @@
 			return color;
 		}
 
-		void render(const std::vector<Polygon*>& objects, int width, int height) {
+		void render() {
 			std::vector<std::vector<glm::vec3>> frameBuffer;
 
 			// Create and open a text file
 			std::ofstream OutputFile("render.ppm");
 
 			// Setup PPM file settings
-			OutputFile << "P3\n# This is a render!\n" << width << " " << height << "\n255\n";
+			OutputFile << "P3\n# This is a render!\n" << widthPixels << " " << heightPixels << "\n255\n";
 
 			//Create image-matrix from raytrace
-			for (size_t z = 0; z < height; z++) {
-				std::clog << "\rScanlines remaining: " << (height - z) << ' ' << std::flush;
+			for (size_t z = 0; z < heightPixels; z++) {
+				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
 				std::vector<glm::vec3> row;
-				for (size_t y = 0; y < width; y++) {
+				for (size_t y = 0; y < widthPixels; y++) {
 
-					float u = (2.0f * (y + 0.5f) / width) - 1.0f;
-					float v = 1.0f - (2.0f * (z + 0.5f) / height);
+					float u = ((y + 0.5f) / widthPixels) * imagePlaneWidth - imagePlaneWidth / 2;
+					float v = (1.0f - (z + 0.5f) / heightPixels) * imagePlaneHeight - imagePlaneHeight / 2;
 
 					Ray firstRay = shootStartRay(glm::vec3(-1.0, 0.0, 0.0), u, v);
 					shootNextRay(firstRay);
@@ -175,9 +176,9 @@
 			}
 
 			//Write imageFile from frameBuffer
-			for (size_t y = 0; y < height; y++) {
+			for (size_t y = 0; y < heightPixels; y++) {
 
-				for (size_t x = 0; x < width; x++) 
+				for (size_t x = 0; x < widthPixels; x++) 
 				{
 					OutputFile << (int)((frameBuffer[y][x][0] / largest) * 255) << " ";
 					OutputFile << (int)((frameBuffer[y][x][1] / largest) * 255) << " ";

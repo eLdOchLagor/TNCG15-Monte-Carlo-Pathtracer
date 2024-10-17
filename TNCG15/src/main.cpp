@@ -12,7 +12,7 @@
 int main()
 {
 	const int imageWidth = 800;
-	const int imageHeight = 800;
+	const int imageHeight = 700;
 	const glm::vec3 cam_pos(0, 0, 0);
 	const glm::vec3 cam_up(0,0,1);
 	const glm::vec3 cam_forward(1,0,0);
@@ -60,9 +60,9 @@ int main()
 	scene.push_back(wall6);
 	//-----------------------------------------------------------------------------------------------
 
-	Camera mainCamera(cam_pos, cam_forward, cam_up, cam_fov, (float)imageWidth / imageHeight, scene);
+	Camera mainCamera(cam_pos, cam_forward, cam_up, cam_fov, imageWidth, imageHeight, scene);
 	
-	mainCamera.render(scene, imageHeight, imageHeight);
+	mainCamera.render();
 
 	return 0;
 }
