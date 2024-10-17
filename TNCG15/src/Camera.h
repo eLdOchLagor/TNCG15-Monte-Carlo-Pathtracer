@@ -18,12 +18,15 @@
 		float aspectRatio; // Aspect ratio of the image (width / height)
 		float imagePlaneWidth, imagePlaneHeight; 
 
-		Camera(glm::vec3 pos, glm::vec3 fwd, glm::vec3 up, float fov, float aspect) : position(pos), forward(fwd), fov(fov), aspectRatio(aspect) {
+		std::vector<Polygon*> objects;
+
+		Camera(glm::vec3 pos, glm::vec3 fwd, glm::vec3 up, float fov, float aspect, std::vector<Polygon*> obj) : position(pos), forward(fwd), fov(fov), aspectRatio(aspect), objects(obj) {
 
 			right = glm::normalize(glm::cross(forward, up));
 			trueUp = glm::cross(right, forward);
 			imagePlaneHeight = 2.0f * tan(glm::radians(fov) / 2.0f);
 			imagePlaneWidth = imagePlaneHeight * aspectRatio;
+			
 
 		}
 
@@ -35,7 +38,7 @@
 			return firstRay;
 		}
 
-		Ray shootNextRay(Ray& prevRay, const std::vector<Polygon*>& objects) {
+		Ray shootNextRay(Ray& prevRay) {
 			for (Polygon* temp : objects)
 			{
 
@@ -54,7 +57,7 @@
 				Ray newRay{startPoint, d_o, importance};
 				newRay.previous_ray = &prevRay;
 				prevRay.next_ray = &newRay;
-				shootNextRay(newRay, objects);
+				shootNextRay(newRay);
 				prevRay.radiance = newRay.radiance;
 			}
 			
@@ -82,7 +85,7 @@
 					float v = 1.0f - (2.0f * (z + 0.5f) / height);
 
 					Ray firstRay = shootStartRay(glm::vec3(-1.0, 0.0, 0.0), u, v);
-					shootNextRay(firstRay, objects);
+					shootNextRay(firstRay);
 					
 					
 					
@@ -111,8 +114,8 @@
 			//Write imageFile from frameBuffer
 			for (size_t y = 0; y < height; y++) {
 
-				for (size_t x = 0; x < width; x++) {
-
+				for (size_t x = 0; x < width; x++) 
+				{
 					OutputFile << (int)((frameBuffer[y][x][0] / largest) * 255) << " ";
 					OutputFile << (int)((frameBuffer[y][x][1] / largest) * 255) << " ";
 					OutputFile << (int)((frameBuffer[y][x][2] / largest) * 255) << " ";

@@ -17,7 +17,7 @@ int main()
 	const glm::vec3 cam_up(0,0,1);
 	const glm::vec3 cam_forward(1,0,0);
 	const float cam_fov = 80;
-	Camera mainCamera(cam_pos, cam_forward, cam_up, cam_fov,(float)imageWidth/imageHeight); //TODO: fixa så att aspectRatio och fov beräknas i constructorn istället
+	 //TODO: fixa så att aspectRatio och fov beräknas i constructorn istället
 
 	std::vector<Polygon*> scene;
 	Triangle* test = new Triangle(glm::vec3(10, 5, -3), glm::vec3(10, 2, -3), glm::vec3(10, 4, 5), glm::vec3(0, 0, 0), false);
@@ -58,7 +58,7 @@ int main()
 	scene.push_back(wall6);
 	//-----------------------------------------------------------------------------------------------
 
-	
+	Camera mainCamera(cam_pos, cam_forward, cam_up, cam_fov, (float)imageWidth / imageHeight, scene);
 	
 	mainCamera.render(scene, imageHeight, imageHeight);
 
