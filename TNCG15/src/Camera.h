@@ -20,7 +20,7 @@
 		float aspectRatio; // Aspect ratio of the image (width / height)
 		float imagePlaneWidth, imagePlaneHeight; 
 
-		Rectangle* light = new Rectangle(glm::vec3(-2, -2, 5), glm::vec3(2, -2, 5), glm::vec3(-2, 2, 5), glm::vec3(2, 2, 5), glm::vec3(1.0, 1.0, 1.0));
+		Rectangle* light = new Rectangle(glm::vec3(-2, -2, 5), glm::vec3(-2, 2, 5), glm::vec3(2, 2, 5), glm::vec3(2, -2, 5), glm::vec3(1.0, 1.0, 1.0));
 
 		std::vector<Polygon*> objects;
 
@@ -63,10 +63,10 @@
 					glm::vec3 d_o = glm::normalize(previousRay->direction) - 2 * glm::dot(glm::normalize(previousRay->direction), previousRay->hit_surface->normal) * previousRay->hit_surface->normal;
 					glm::vec3 startPoint = previousRay->end_point;
 					glm::vec3 importance = previousRay->radiance;
-					Ray newRay{ startPoint, d_o, importance };
-					previousRay->next_ray = &newRay;
+					Ray* newRay = new Ray(startPoint, d_o, importance);
+					previousRay->next_ray = newRay;
 					//tempRay = previousRay->next_ray;
-					newRay.previous_ray = previousRay;
+					newRay->previous_ray = previousRay;
 					previousRay = previousRay->next_ray;
 					//shootNextRay(newRay);
 					//prevRay.radiance = newRay.radiance;
@@ -77,7 +77,9 @@
 					glm::dvec3 e1 = light->verticies[1] - light->verticies[0];
 					glm::dvec3 e2 = light->verticies[2] - light->verticies[0];
 
-					srand(time(0));
+					//std::cout << e2.x << " " << e2.y << " " << e2.z << "\n";
+
+					//srand(time(0));
 
 					double radiance = 0.0;
 					int N = 15;
@@ -94,9 +96,10 @@
 						double cosy = glm::dot(-glm::dvec3(light->normal), di / glm::length(di));
 
 						radiance += (cosx * cosy) / (glm::length(di) * glm::length(di));
+						//std::cout << light->normal.x << " " << light->normal.y << " " << light->normal.z << "\n";
 					}
 
-					radiance *= 16 / (2*acos(0.0) * N); // 2*acos(0.0) = pi
+					radiance *= 30 / (2*acos(0.0) * N); // 2*acos(0.0) = pi
 					
 					previousRay->radiance = glm::vec3(radiance, radiance, radiance);
 					//previousRay->radiance = previousRay->hit_surface->color;
@@ -105,7 +108,7 @@
 					break;
 				}
 				else {
-					
+
 					i = 0;
 					break;
 				}
