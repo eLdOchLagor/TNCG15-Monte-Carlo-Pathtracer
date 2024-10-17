@@ -38,32 +38,67 @@
 			return firstRay;
 		}
 
-		Ray shootNextRay(Ray& prevRay) {
-			for (Polygon* temp : objects)
-			{
+		void shootNextRay(Ray& firstRay) {
+			size_t i = 0;
+			Ray* previousRay = &firstRay;
+			Ray* tempRay = previousRay;
+			while (i < 5) {
+				for (Polygon* temp : objects)
+				{
 
-				Polygon* surface = temp->surfaceIntersectionTest(prevRay);
-				if (surface != nullptr) {
-					prevRay.hit_surface = surface;
+					Polygon* surface = temp->surfaceIntersectionTest(*previousRay);
+					if (surface != nullptr) {
+						previousRay->hit_surface = surface;
+						break;
+					}
+
+				}
+
+				if ((*previousRay).hit_surface->mirror == 1) {
+					//std::cout << "prickade en mirror";
+					glm::vec3 d_o = glm::normalize(previousRay->direction) - 2 * glm::dot(glm::normalize(previousRay->direction), previousRay->hit_surface->normal) * previousRay->hit_surface->normal;
+					glm::vec3 startPoint = previousRay->end_point;
+					glm::vec3 importance = previousRay->radiance;
+					Ray newRay{ startPoint, d_o, importance };
+					previousRay->next_ray = &newRay;
+					//tempRay = previousRay->next_ray;
+					newRay.previous_ray = previousRay;
+					previousRay = previousRay->next_ray;
+					//shootNextRay(newRay);
+					//prevRay.radiance = newRay.radiance;
+					i++;
+				}
+				else if ((*previousRay).hit_surface->mirror == 0) {
+
+					(*previousRay).radiance = (*previousRay).hit_surface->color;
+
+					i = 0;
 					break;
 				}
-				
+				else {
+					
+					i = 0;
+					break;
+				}
 			}
+			
+			
+			
+		}
 
-			if (prevRay.hit_surface->mirror == 1) {
-				glm::vec3 d_o = glm::normalize(prevRay.direction) - 2 * glm::dot(glm::normalize(prevRay.direction), prevRay.hit_surface->normal) * prevRay.hit_surface->normal;
-				glm::vec3 startPoint = prevRay.end_point;
-				glm::vec3 importance = prevRay.radiance;
-				Ray newRay{startPoint, d_o, importance};
-				newRay.previous_ray = &prevRay;
-				prevRay.next_ray = &newRay;
-				shootNextRay(newRay);
-				prevRay.radiance = newRay.radiance;
+		glm::vec3 calcColor(Ray& firstRay) {
+			Ray* currentRay = &firstRay;
+			glm::vec3 color = currentRay->radiance;
+			while (currentRay != nullptr) {
+				if (currentRay->hit_surface->mirror == 1) {
+					currentRay = currentRay->next_ray;
+				}
+				else {
+					color = currentRay->radiance;
+					currentRay = currentRay->next_ray;
+				}
 			}
-			
-			
-			return prevRay;
-			
+			return color;
 		}
 
 		void render(const std::vector<Polygon*>& objects, int width, int height) {
@@ -86,7 +121,7 @@
 
 					Ray firstRay = shootStartRay(glm::vec3(-1.0, 0.0, 0.0), u, v);
 					shootNextRay(firstRay);
-					
+					glm::vec3 pixelColor = calcColor(firstRay);
 					
 					
 					
@@ -94,7 +129,7 @@
 
 					//std::cout << firstRay.radiance.x << " " << firstRay.radiance.y << " " << firstRay.radiance.z << "\n";
 
-					row.push_back(firstRay.radiance); //TODO: replace with generateRay
+					row.push_back(pixelColor); //TODO: replace with generateRay
 					//row.push_back((y % 2 == 0 ? glm::vec3(0, 0, 0) : glm::vec3(255, 255, 255))); //TODO: replace with generateRay
 				}
 				frameBuffer.push_back(row);

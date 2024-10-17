@@ -20,7 +20,7 @@ int main()
 	 //TODO: fixa så att aspectRatio och fov beräknas i constructorn istället
 
 	std::vector<Polygon*> scene;
-	Triangle* test = new Triangle(glm::vec3(10, 5, -3), glm::vec3(10, 2, -3), glm::vec3(10, 4, 5), glm::vec3(0, 0, 0), false);
+	Triangle* test = new Triangle(glm::vec3(10, 4, 5), glm::vec3(10, 2, -3), glm::vec3(10, 5, -3),  glm::vec3(0, 0, 0), false);
 	scene.push_back(test);
 	// Floor ----------------------------------------------------------------------------------------
 	Rectangle* floor1 = new Rectangle(glm::vec3(10,6,-5), glm::vec3(0,6,-5), glm::vec3(0,-6,-5), glm::vec3(10,-6,-5),glm::vec3(0.6,0.92,0.8));
