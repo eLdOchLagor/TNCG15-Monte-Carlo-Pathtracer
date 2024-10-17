@@ -79,8 +79,9 @@
 					glm::dvec3 e1 = light->verticies[1] - light->verticies[0];
 					glm::dvec3 e2 = light->verticies[3] - light->verticies[0];
 
-					double radiance = 0.0;
+					glm::dvec3 radiance(0.0, 0.0, 0.0);
 					int N = 15;
+					glm::dvec3 surfaceColor = previousRay->hit_surface->color;
 
 					for (size_t i = 0; i < N; i++)
 					{
@@ -93,13 +94,14 @@
 						double cosx = glm::dot(glm::dvec3(previousRay->hit_surface->normal), di / glm::length(di));
 						double cosy = glm::dot(-glm::dvec3(light->normal), di / glm::length(di));
 
-						radiance += (cosx * cosy) / (glm::length(di) * glm::length(di));
+						double scalar_radiance = (cosx * cosy) / (glm::length(di) * glm::length(di));
+
+						radiance += surfaceColor * scalar_radiance;
 					}
 
-					radiance *= 16 / (2*acos(0.0) * N); // 2*acos(0.0) = pi
+					radiance *= 16.0 / (2*acos(0.0) * N); // 2*acos(0.0) = pi
 					
-					previousRay->radiance = glm::vec3(radiance, radiance, radiance);
-					//previousRay->radiance = previousRay->hit_surface->color;
+					previousRay->radiance = radiance;
 
 					i = 0;
 					break;
