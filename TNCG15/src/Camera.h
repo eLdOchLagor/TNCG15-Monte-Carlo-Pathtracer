@@ -21,6 +21,7 @@
 		float imagePlaneWidth, imagePlaneHeight; 
 
 		Rectangle* light = new Rectangle(glm::vec3(-2, -2, 5), glm::vec3(2, -2, 5), glm::vec3(-2, 2, 5), glm::vec3(2, 2, 5), glm::vec3(1.0, 1.0, 1.0));
+
 		std::vector<Polygon*> objects;
 
 		Camera(glm::vec3 pos, glm::vec3 fwd, glm::vec3 up, float fov, float aspect, std::vector<Polygon*> obj) : position(pos), forward(fwd), fov(fov), aspectRatio(aspect), objects(obj) {
@@ -95,7 +96,7 @@
 						radiance += (cosx * cosy) / (glm::length(di) * glm::length(di));
 					}
 
-					radiance *= 16 / (acos(0.0) * N);
+					radiance *= 16 / (2*acos(0.0) * N); // 2*acos(0.0) = pi
 					
 					previousRay->radiance = glm::vec3(radiance, radiance, radiance);
 					//previousRay->radiance = previousRay->hit_surface->color;
