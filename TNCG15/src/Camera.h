@@ -20,8 +20,8 @@
 
 		Camera(glm::vec3 pos, glm::vec3 fwd, glm::vec3 up, float fov, float aspect) : position(pos), forward(fwd), fov(fov), aspectRatio(aspect) {
 
-			right = glm::normalize(glm::cross(up, forward));
-			trueUp = glm::cross(forward, right);
+			right = glm::normalize(glm::cross(forward, up));
+			trueUp = glm::cross(right, forward);
 			imagePlaneHeight = 2.0f * tan(glm::radians(fov) / 2.0f);
 			imagePlaneWidth = imagePlaneHeight * aspectRatio;
 
