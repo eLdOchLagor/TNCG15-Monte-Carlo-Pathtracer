@@ -1,5 +1,7 @@
 #pragma once
 
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <vector>
 #include <glm/glm.hpp>
 #include "Ray.h"
@@ -18,6 +20,7 @@
 		float aspectRatio; // Aspect ratio of the image (width / height)
 		float imagePlaneWidth, imagePlaneHeight; 
 
+		Rectangle* light = new Rectangle(glm::vec3(-2, -2, 5), glm::vec3(2, -2, 5), glm::vec3(-2, 2, 5), glm::vec3(2, 2, 5), glm::vec3(1.0, 1.0, 1.0));
 		std::vector<Polygon*> objects;
 
 		Camera(glm::vec3 pos, glm::vec3 fwd, glm::vec3 up, float fov, float aspect, std::vector<Polygon*> obj) : position(pos), forward(fwd), fov(fov), aspectRatio(aspect), objects(obj) {
@@ -54,7 +57,7 @@
 
 				}
 
-				if ((*previousRay).hit_surface->mirror == 1) {
+				if (previousRay->hit_surface->mirror == 1) {
 					//std::cout << "prickade en mirror";
 					glm::vec3 d_o = glm::normalize(previousRay->direction) - 2 * glm::dot(glm::normalize(previousRay->direction), previousRay->hit_surface->normal) * previousRay->hit_surface->normal;
 					glm::vec3 startPoint = previousRay->end_point;
@@ -68,9 +71,34 @@
 					//prevRay.radiance = newRay.radiance;
 					i++;
 				}
-				else if ((*previousRay).hit_surface->mirror == 0) {
+				else if (previousRay->hit_surface->mirror == 0) {
 
-					(*previousRay).radiance = (*previousRay).hit_surface->color;
+					glm::dvec3 e1 = light->verticies[1] - light->verticies[0];
+					glm::dvec3 e2 = light->verticies[2] - light->verticies[0];
+
+					srand(time(0));
+
+					double radiance = 0.0;
+					int N = 15;
+
+					for (size_t i = 0; i < N; i++)
+					{
+						double s = (double)rand() / RAND_MAX;
+						double t = (double)rand() / RAND_MAX;
+
+						glm::dvec3 y = s * e1 + t * e2;
+						glm::dvec3 di = y - glm::dvec3(previousRay->end_point);
+						
+						double cosx = glm::dot(glm::dvec3(previousRay->hit_surface->normal), di / glm::length(di));
+						double cosy = glm::dot(-glm::dvec3(light->normal), di / glm::length(di));
+
+						radiance += (cosx * cosy) / (glm::length(di) * glm::length(di));
+					}
+
+					radiance *= 16 / (acos(0.0) * N);
+					
+					previousRay->radiance = glm::vec3(radiance, radiance, radiance);
+					//previousRay->radiance = previousRay->hit_surface->color;
 
 					i = 0;
 					break;

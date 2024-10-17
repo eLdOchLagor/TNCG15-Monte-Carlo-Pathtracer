@@ -20,8 +20,10 @@ int main()
 	 //TODO: fixa så att aspectRatio och fov beräknas i constructorn istället
 
 	std::vector<Polygon*> scene;
-	Triangle* test = new Triangle(glm::vec3(10, 4, 5), glm::vec3(10, 2, -3), glm::vec3(10, 5, -3),  glm::vec3(0, 0, 0), false);
-	scene.push_back(test);
+
+	//Triangle* test = new Triangle(glm::vec3(10, 4, 5), glm::vec3(10, 2, -3), glm::vec3(10, 5, -3),  glm::vec3(0, 0, 0), false);
+	//scene.push_back(test);
+	
 	// Floor ----------------------------------------------------------------------------------------
 	Rectangle* floor1 = new Rectangle(glm::vec3(10,6,-5), glm::vec3(0,6,-5), glm::vec3(0,-6,-5), glm::vec3(10,-6,-5),glm::vec3(0.6,0.92,0.8));
 	Triangle* floor2 = new Triangle(glm::vec3(0, 6, -5), glm::vec3(-3, 0, -5), glm::vec3(0, -6, -5), glm::vec3(1.0, 1.0, 0));
@@ -44,7 +46,7 @@ int main()
 	//bottom
 	Rectangle* wall1 = new Rectangle(glm::vec3(-3, 0, 5), glm::vec3(0, -6, 5), glm::vec3(0, -6, -5), glm::vec3(-3, 0, -5), glm::vec3(0, 1.0, 0));
 	Rectangle* wall2 = new Rectangle(glm::vec3(0, -6, 5), glm::vec3(10, -6, 5), glm::vec3(10, -6, -5), glm::vec3(0, -6, -5), glm::vec3(1.0, 0, 0));
-	Rectangle* wall3 = new Rectangle(glm::vec3(10, -6, 5), glm::vec3(13, 0, 5), glm::vec3(13, 0, -5), glm::vec3(10, -6, -5), glm::vec3(1.0, 1.0, 1.0), true); //Målvägg höger //looking at
+	Rectangle* wall3 = new Rectangle(glm::vec3(10, -6, 5), glm::vec3(13, 0, 5), glm::vec3(13, 0, -5), glm::vec3(10, -6, -5), glm::vec3(1.0, 1.0, 1.0)); //Målvägg höger //looking at
 	scene.push_back(wall1);
 	scene.push_back(wall2);
 	scene.push_back(wall3);
@@ -52,7 +54,7 @@ int main()
 	//top
 	Rectangle* wall4 = new Rectangle(glm::vec3(-3, 0, 5), glm::vec3(-3, 0, -5), glm::vec3(0, 6, -5), glm::vec3(0, 6, 5), glm::vec3(1.0, 0.5, 0.5)); 
 	Rectangle* wall5 = new Rectangle(glm::vec3(0, 6, 5), glm::vec3(0, 6, -5), glm::vec3(10, 6, -5), glm::vec3(10, 6, 5), glm::vec3(0, 1.0, 0));
-	Rectangle* wall6 = new Rectangle(glm::vec3(10, 6, 5), glm::vec3(10, 6, -5), glm::vec3(13, 0, -5), glm::vec3(13, 0, 5), glm::vec3(1.0, 1.0, 1.0), true); //Målvägg vänster //looking at
+	Rectangle* wall6 = new Rectangle(glm::vec3(10, 6, 5), glm::vec3(10, 6, -5), glm::vec3(13, 0, -5), glm::vec3(13, 0, 5), glm::vec3(1.0, 1.0, 1.0)); //Målvägg vänster //looking at
 	scene.push_back(wall4);
 	scene.push_back(wall5);
 	scene.push_back(wall6);
