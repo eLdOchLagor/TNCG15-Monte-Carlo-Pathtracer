@@ -1,6 +1,9 @@
 #pragma once
 
 #define _USE_MATH_DEFINES
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+
+#include "stb_image_write.h"
 #include <cmath>
 #include <vector>
 #include <glm/glm.hpp>
@@ -31,8 +34,6 @@
 			trueUp = glm::cross(right, forward);
 			imagePlaneHeight = 2.0f * tan(glm::radians(fov) / 2.0f);
 			imagePlaneWidth = imagePlaneHeight * aspectRatio;
-			
-
 		}
 
 		Ray shootStartRay(glm::vec3 eye, float u, float v) {
@@ -112,9 +113,6 @@
 					break;
 				}
 			}
-			
-			
-			
 		}
 
 		glm::vec3 calcColor(Ray& firstRay) {
@@ -135,12 +133,6 @@
 		void render() {
 			std::vector<std::vector<glm::vec3>> frameBuffer;
 
-			// Create and open a text file
-			std::ofstream OutputFile("render.ppm");
-
-			// Setup PPM file settings
-			OutputFile << "P3\n# This is a render!\n" << widthPixels << " " << heightPixels << "\n255\n";
-
 			//Create image-matrix from raytrace
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
@@ -153,10 +145,6 @@
 					Ray firstRay = shootStartRay(glm::vec3(-1.0, 0.0, 0.0), u, v);
 					shootNextRay(firstRay);
 					glm::vec3 pixelColor = calcColor(firstRay);
-					
-					
-					
-					
 
 					//std::cout << firstRay.radiance.x << " " << firstRay.radiance.y << " " << firstRay.radiance.z << "\n";
 
@@ -177,23 +165,24 @@
 				}
 			}
 
+			// Create a buffer to hold the final image data (unsigned char)
+			std::vector<unsigned char> imageBuffer(widthPixels * heightPixels * 3);  // 3 bytes per pixel (RGB)
+
 			//Write imageFile from frameBuffer
 			for (size_t y = 0; y < heightPixels; y++) {
 
 				for (size_t x = 0; x < widthPixels; x++) 
 				{
-					OutputFile << (int)((frameBuffer[y][x][0] / largest) * 255) << " ";
-					OutputFile << (int)((frameBuffer[y][x][1] / largest) * 255) << " ";
-					OutputFile << (int)((frameBuffer[y][x][2] / largest) * 255) << " ";
+					size_t index = (y * widthPixels + x) * 3;
+					imageBuffer[index + 0] = static_cast<unsigned char>((frameBuffer[y][x][0] / largest) * 255);  // R
+					imageBuffer[index + 1] = static_cast<unsigned char>((frameBuffer[y][x][1] / largest) * 255);  // G
+					imageBuffer[index + 2] = static_cast<unsigned char>((frameBuffer[y][x][2] / largest) * 255);  // B
 				}
-				OutputFile << "\n";
 			}
-			// Close the file
-			OutputFile.close();
+			
+			// Write the buffer to a PNG file
+			stbi_write_png("render.png", widthPixels, heightPixels, 3, imageBuffer.data(), widthPixels * 3);
 		}
-
-
-
 
 	private:
 		
