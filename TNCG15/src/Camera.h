@@ -4,6 +4,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 
 #include "stb_image_write.h"
+#include <random>
 #include <cmath>
 #include <vector>
 #include <glm/glm.hpp>
@@ -46,10 +47,10 @@
 		}
 
 		void shootNextRay(Ray& firstRay) {
-			size_t i = 0;
+			
 			Ray* previousRay = &firstRay;
 			Ray* tempRay = previousRay;
-			while (i < 5) {
+			
 				for (Polygon* temp : objects)
 				{
 
@@ -74,55 +75,66 @@
 					//shootNextRay(newRay);
 					//prevRay.radiance = newRay.radiance;
 
-					i++;
+					
 				}
 				else if (previousRay->hit_surface->mirror == 0) {
+					
+					std::random_device rd;   // Obtain a random seed
+					std::mt19937 gen(rd());  // Standard mersenne_twister_engine seeded with rd()
+					std::uniform_real_distribution<> dis(0.0, 1.0);
+					double randomValue = dis(gen);
+					double randAzimuth = acos(sqrt(1 - randomValue));
+					double randPhi = 2 * M_PI * randomValue;
+					
+					
 
-					glm::dvec3 e1 = light->verticies[1] - light->verticies[0];
-					glm::dvec3 e2 = light->verticies[3] - light->verticies[0];
+					
 
-					glm::dvec3 radiance(0.0, 0.0, 0.0);
-					int N = 15;
-					glm::dvec3 surfaceColor = previousRay->hit_surface->color;
+					previousRay->radiance = calculateDirectIllumination(previousRay);
 
-					for (size_t n = 0; n < N; n++)
-					{
-						double s = (double)rand() / RAND_MAX;
-						double t = (double)rand() / RAND_MAX;
-
-						glm::dvec3 y = glm::dvec3(light->verticies[0]) + s * e1 + t * e2;
-						glm::dvec3 di = y - glm::dvec3(previousRay->end_point);
-						
-						double cosx = glm::dot(previousRay->hit_surface->normal, glm::normalize(di));
-						double cosy = glm::dot(-light->normal, glm::normalize(di));
-
-						// Make sure that surfaces facing away from the lightsource dont give negative values, these values give wrong result
-						cosx = std::max(0.0, cosx);
-						cosy = std::max(0.0, cosy);
-
-						const double epsilon = 1e-4;
-						if (!isInShadow(previousRay->end_point + epsilon * previousRay->hit_surface->normal, y, previousRay->hit_surface)) {
-							double scalar_radiance = (cosx * cosy) / (glm::length(di) * glm::length(di));
-							radiance += scalar_radiance;
-						}
-						
-					}
-
-					radiance *= surfaceColor * 16.0 / (M_PI * N);
-
-					previousRay->radiance = radiance;
-
-					i = 0;
-					break;
+					
+					
 				}
 				else {
 
-					i = 0;
-					break;
+					
+					
 				}
-			}
+			
 		}
+		glm::dvec3 calculateDirectIllumination(Ray* ray) {
+			glm::dvec3 e1 = light->verticies[1] - light->verticies[0];
+			glm::dvec3 e2 = light->verticies[3] - light->verticies[0];
 
+			glm::dvec3 radiance(0.0, 0.0, 0.0);
+			int N = 15;
+			glm::dvec3 surfaceColor = ray->hit_surface->color;
+
+			for (size_t n = 0; n < N; n++)
+			{
+				double s = (double)rand() / RAND_MAX;
+				double t = (double)rand() / RAND_MAX;
+
+				glm::dvec3 y = glm::dvec3(light->verticies[0]) + s * e1 + t * e2;
+				glm::dvec3 di = y - glm::dvec3(ray->end_point);
+
+				double cosx = glm::dot(ray->hit_surface->normal, glm::normalize(di));
+				double cosy = glm::dot(-light->normal, glm::normalize(di));
+
+				// Make sure that surfaces facing away from the lightsource dont give negative values, these values give wrong result
+				cosx = std::max(0.0, cosx);
+				cosy = std::max(0.0, cosy);
+
+				const double epsilon = 1e-4;
+				if (!isInShadow(ray->end_point + epsilon * ray->hit_surface->normal, y, ray->hit_surface)) {
+					double scalar_radiance = (cosx * cosy) / (glm::length(di) * glm::length(di));
+					radiance += scalar_radiance;
+				}
+
+			}
+
+			return radiance *= surfaceColor * 16.0 / (M_PI * N);
+		}
 		bool isInShadow(const glm::dvec3& point, const glm::dvec3& lightPos, const Polygon* originSurface) {
 			Ray shadowRay(point, glm::normalize(lightPos - point), glm::dvec3(0,0,0));
 

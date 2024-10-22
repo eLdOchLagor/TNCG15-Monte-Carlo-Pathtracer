@@ -13,8 +13,8 @@
 
 int main()
 {
-	const int imageWidth = 800;
-	const int imageHeight = 700;
+	const int imageWidth = 200;
+	const int imageHeight = 200;
 	const glm::dvec3 cam_pos(0, 0, 0);
 	const glm::dvec3 cam_up(0,0,1);
 	const glm::dvec3 cam_forward(1,0,0);
