@@ -19,10 +19,11 @@ class Polygon;
 		glm::dvec3 start_point;
 		glm::dvec3 end_point;
 		glm::dvec3 direction;
-		glm::dvec3 radiance;
+		glm::dvec3 radiance;		
 		Polygon* hit_surface;
 		Ray* previous_ray;
 		Ray* next_ray;
+
 	private:
 
 	};

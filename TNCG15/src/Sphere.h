@@ -5,9 +5,10 @@
 class Sphere : public Polygon {
 public:
 
-	Sphere(glm::dvec3 cen, double r, glm::dvec3 col, bool mir, bool isB = false) : center{ cen }, radius{ r } {
+	Sphere(glm::dvec3 cen, double r, glm::dvec3 col, const int& surfID, const double reflec, bool isB = false) : center{ cen }, radius{ r } {
 		color = col;
-		mirror = mir;
+		surfaceID = surfID;
+		reflectance = reflec;
 		isBoundry = isB;
 	}
 

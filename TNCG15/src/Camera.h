@@ -25,7 +25,7 @@
 		double imagePlaneWidth, imagePlaneHeight;
 		int widthPixels, heightPixels;
 		int i = 0;
-		Rectangle* light = new Rectangle(glm::dvec3(-2, -2, 5), glm::dvec3(-2, 2, 5), glm::dvec3(2, 2, 5), glm::dvec3(2, -2, 5), glm::dvec3(1.0, 1.0, 1.0));
+		Rectangle* light = new Rectangle(glm::dvec3(-2, -2, 5), glm::dvec3(-2, 2, 5), glm::dvec3(2, 2, 5), glm::dvec3(2, -2, 5), glm::dvec3(1.0, 1.0, 1.0), 0, 0);
 
 		std::vector<Polygon*> objects;
 		std::vector<Polygon*> sceneObjects;
@@ -47,22 +47,20 @@
 		}
 
 		void shootNextRay(Ray& firstRay) {
-			std::cout << i << "\n";
+			//std::cout << i << "\n";
 			Ray* previousRay = &firstRay;
 			
 				
 				for (Polygon* temp : objects)
 				{
-
 					Polygon* surface = temp->surfaceIntersectionTest(*previousRay);
 					if (surface != nullptr) {
 						previousRay->hit_surface = surface;
 						break;
 					}
-
 				}
 
-				if (previousRay->hit_surface->mirror == 1) {
+				if (previousRay->hit_surface->surfaceID == 1) {
 					//std::cout << "prickade en mirror";
 					glm::dvec3 d_o = glm::normalize(previousRay->direction) - 2 * glm::dot(glm::normalize(previousRay->direction), previousRay->hit_surface->normal) * previousRay->hit_surface->normal;
 					glm::dvec3 startPoint = previousRay->end_point;
@@ -77,19 +75,19 @@
 
 					
 				}
-				else if (previousRay->hit_surface->mirror == 0) {
+				else if (previousRay->hit_surface->surfaceID == 2) {
 					
 					std::random_device rd;   // Obtain a random seed
 					std::mt19937 gen(rd());  // Standard mersenne_twister_engine seeded with rd()
 					std::uniform_real_distribution<> dis(0.0, 1.0);
 					
-					double Roh = 0.1;
+					double Roh = 0.01;
 
 					double randomValue = dis(gen);
 					double randAzimuth = acos(sqrt(1 - randomValue));
 					double randPhi = 2 * M_PI * randomValue;
 					double rr = randPhi / Roh;
-					if (randPhi <= 2 * M_PI) {
+					if (rr <= 2 * M_PI) {
 
 						double x = cos(randPhi) * sin(randAzimuth);
 						double y = sin(randPhi) * sin(randAzimuth);
@@ -121,14 +119,16 @@
 						Ray* rayPath = previousRay;
 						rayPath->radiance = calculateDirectIllumination(rayPath);
 						while (rayPath->previous_ray != nullptr) {
-							if (rayPath->previous_ray->hit_surface->mirror) {
+							if (rayPath->previous_ray->hit_surface->surfaceID == 1) {
 								rayPath->previous_ray->radiance = rayPath->radiance;
+								rayPath = rayPath->previous_ray;
 							}
 							else {
 								rayPath->previous_ray->radiance = rayPath->previous_ray->hit_surface->color.r * rayPath->radiance.r +  
 									rayPath->previous_ray->hit_surface->color.g * rayPath->radiance.g + 
 									rayPath->previous_ray->hit_surface->color.b * rayPath->radiance.b +
 									calculateDirectIllumination(rayPath->previous_ray);
+								rayPath = rayPath->previous_ray;
 							}
 						}
 					}
@@ -194,7 +194,7 @@
 			Ray* currentRay = &firstRay;
 			glm::dvec3 color = currentRay->radiance;
 			while (currentRay != nullptr) {
-				if (currentRay->hit_surface->mirror == 1) {
+				if (currentRay->hit_surface->surfaceID == 0) {
 					currentRay = currentRay->next_ray;
 				}
 				else {
@@ -209,21 +209,38 @@
 			std::vector<std::vector<glm::dvec3>> frameBuffer;
 
 			//Create image-matrix from raytrace
+			int samples = 40;
 			for (size_t z = 0; z < heightPixels; z++) {
-				//std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
+				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
 				std::vector<glm::dvec3> row;
 				for (size_t y = 0; y < widthPixels; y++) {
+					glm::dvec3 finalCol (0.0, 0.0, 0.0); 
+					
 
-					double u = ((y + 0.5f) / widthPixels) * imagePlaneWidth - imagePlaneWidth / 2;
-					double v = (1.0f - (z + 0.5f) / heightPixels) * imagePlaneHeight - imagePlaneHeight / 2;
+					std::random_device rd;   // Obtain a random seed
+					std::mt19937 gen(rd());  // Standard mersenne_twister_engine seeded with rd()
+					std::uniform_real_distribution<> dis(0.0, 1.0);
 
-					Ray firstRay = shootStartRay(glm::dvec3(-1.0, 0.0, 0.0), u, v); // Have to adjust eye pos based on camera position
-					shootNextRay(firstRay);
-					glm::dvec3 pixelColor = calcColor(firstRay);
+					for (size_t N = 0; N < samples; N++) {
+						
 
-					//std::cout << firstRay.radiance.x << " " << firstRay.radiance.y << " " << firstRay.radiance.z << "\n";
+						double u_offset = dis(gen);
+						double v_offset = dis(gen);
 
-					row.push_back(firstRay.radiance); //TODO: replace with generateRay
+						double u = ((y + u_offset) / widthPixels) * imagePlaneWidth - imagePlaneWidth / 2;
+						double v = (1.0 - (z + v_offset) / heightPixels) * imagePlaneHeight - imagePlaneHeight / 2;
+
+						Ray firstRay = shootStartRay(glm::dvec3(-1.0, 0.0, 0.0), u, v); // Have to adjust eye pos based on camera position
+						shootNextRay(firstRay);
+
+						glm::dvec3 pixelColor = calcColor(firstRay);
+
+						//std::cout << firstRay.radiance.x << " " << firstRay.radiance.y << " " << firstRay.radiance.z << "\n";
+						
+						finalCol += firstRay.radiance;
+					}
+					finalCol /= samples;
+					row.push_back(finalCol); //TODO: replace with generateRay
 					//row.push_back((y % 2 == 0 ? glm::dvec3(0, 0, 0) : glm::dvec3(255, 255, 255))); //TODO: replace with generateRay
 				}
 				frameBuffer.push_back(row);
@@ -249,9 +266,9 @@
 				for (size_t x = 0; x < widthPixels; x++) 
 				{
 					size_t index = (y * widthPixels + x) * 3;
-					imageBuffer[index + 0] = static_cast<unsigned char>((frameBuffer[y][x][0] / largest) * 255);  // R
-					imageBuffer[index + 1] = static_cast<unsigned char>((frameBuffer[y][x][1] / largest) * 255);  // G
-					imageBuffer[index + 2] = static_cast<unsigned char>((frameBuffer[y][x][2] / largest) * 255);  // B
+					imageBuffer[index + 0] = static_cast<unsigned char>(sqrt(frameBuffer[y][x][0] / largest) * 255);  // R
+					imageBuffer[index + 1] = static_cast<unsigned char>(sqrt(frameBuffer[y][x][1] / largest) * 255);  // G
+					imageBuffer[index + 2] = static_cast<unsigned char>(sqrt(frameBuffer[y][x][2] / largest) * 255);  // B
 				}
 			}
 			

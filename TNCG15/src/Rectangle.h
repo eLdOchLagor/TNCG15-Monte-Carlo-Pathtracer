@@ -11,14 +11,15 @@
 	class Rectangle : public Polygon{
 	public:
 
-		Rectangle(const glm::dvec3& point1, const glm::dvec3& point2, const glm::dvec3& point3, const glm::dvec3& point4,const glm::dvec3& col, const bool mir = false, bool isB = false)   {
+		Rectangle(const glm::dvec3& point1, const glm::dvec3& point2, const glm::dvec3& point3, const glm::dvec3& point4,const glm::dvec3& col,const int& surfID, const double reflec, bool isB = false)   {
 			verticies.push_back(point1);
 			verticies.push_back(point2);
 			verticies.push_back(point3);
 			verticies.push_back(point4);
 			color = col;
 			normal = glm::normalize(glm::cross(point2 - point1, point4 - point1));
-			mirror = mir;
+			surfaceID = surfID;
+			reflectance = reflec;
 			isBoundry = isB;
 		}
 

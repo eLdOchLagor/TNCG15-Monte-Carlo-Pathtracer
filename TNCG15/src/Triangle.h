@@ -12,13 +12,14 @@
 class Triangle : public Polygon {
 public:
 
-	Triangle(const glm::dvec3& point1, const glm::dvec3& point2, const glm::dvec3& point3, const glm::dvec3& col, const bool mir = false, bool isB = false) {
+	Triangle(const glm::dvec3& point1, const glm::dvec3& point2, const glm::dvec3& point3, const glm::dvec3& col,const int& surfID, const double reflec, bool isB = false) {
 		verticies.push_back(point1);
 		verticies.push_back(point2);
 		verticies.push_back(point3);
 		color = col;
 		normal = glm::normalize(glm::cross(point2 - point1, point3 - point1));
-		mirror = mir;
+		surfaceID = surfID;
+		reflectance = reflec;
 		isBoundry = isB;
 	}
 
