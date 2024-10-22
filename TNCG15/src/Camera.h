@@ -81,7 +81,7 @@
 					std::mt19937 gen(rd());  // Standard mersenne_twister_engine seeded with rd()
 					std::uniform_real_distribution<> dis(0.0, 1.0);
 					
-					double Roh = 0.01;
+					double Roh = 0.7;
 
 					double randomValue = dis(gen);
 					double randAzimuth = acos(sqrt(1 - randomValue));
@@ -94,12 +94,10 @@
 						double z = cos(randAzimuth);
 						glm::dvec3 tangent, bitangent;
 						glm::dvec3 normal = previousRay->hit_surface->normal;
-						if (abs(normal.x) > abs(normal.y)) {
-							tangent = glm::normalize(glm::cross(glm::dvec3(0.0, 1.0, 0.0), normal));
-						}
-						else {
-							tangent = glm::normalize(glm::cross(glm::dvec3(1.0, 0.0, 0.0), normal));
-						}
+						
+						tangent =glm::normalize( - previousRay->direction + glm::dot(normal, previousRay->direction) * normal);
+						
+						
 						bitangent = glm::normalize(glm::cross(normal, tangent));
 
 						glm::dvec3 worldDir = glm::normalize(normal * z + tangent * x + bitangent * y);
@@ -124,9 +122,9 @@
 								rayPath = rayPath->previous_ray;
 							}
 							else {
-								rayPath->previous_ray->radiance = rayPath->previous_ray->hit_surface->color.r * rayPath->radiance.r +  
-									rayPath->previous_ray->hit_surface->color.g * rayPath->radiance.g + 
-									rayPath->previous_ray->hit_surface->color.b * rayPath->radiance.b +
+								rayPath->previous_ray->radiance = glm::dvec3(rayPath->previous_ray->hit_surface->color.r * rayPath->radiance.r,  
+									rayPath->previous_ray->hit_surface->color.g * rayPath->radiance.g, 
+									rayPath->previous_ray->hit_surface->color.b * rayPath->radiance.b) +
 									calculateDirectIllumination(rayPath->previous_ray);
 								rayPath = rayPath->previous_ray;
 							}
@@ -209,7 +207,7 @@
 			std::vector<std::vector<glm::dvec3>> frameBuffer;
 
 			//Create image-matrix from raytrace
-			int samples = 40;
+			int samples = 2000;
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
 				std::vector<glm::dvec3> row;
