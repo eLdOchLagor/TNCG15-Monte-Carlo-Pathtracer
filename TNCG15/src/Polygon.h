@@ -8,10 +8,11 @@
 	class Polygon {
 	public:
 		
-		std::vector<glm::vec3> verticies;
-		glm::vec3 color;
-		glm::vec3 normal;
+		std::vector<glm::dvec3> verticies;
+		glm::dvec3 color;
+		glm::dvec3 normal;
 		bool mirror;
+		bool isBoundry;
 
 		virtual Polygon* surfaceIntersectionTest(Ray& r) { return nullptr; };
 		
