@@ -84,8 +84,7 @@
 					glm::dvec3 radiance(0.0, 0.0, 0.0);
 					int N = 15;
 					glm::dvec3 surfaceColor = previousRay->hit_surface->color;
-					double tempcosx;
-					double tempcosy;
+
 					for (size_t n = 0; n < N; n++)
 					{
 						double s = (double)rand() / RAND_MAX;
@@ -93,35 +92,24 @@
 
 						glm::dvec3 y = glm::dvec3(light->verticies[0]) + s * e1 + t * e2;
 						glm::dvec3 di = y - glm::dvec3(previousRay->end_point);
-						Ray* shadowRay = new Ray(previousRay->end_point, glm::dvec3(di), glm::dvec3(0, 0, 0));
-						for (Polygon* blockedSurfaceObjects : sceneObjects)
-						{
-
-							Polygon* blockedSurface = blockedSurfaceObjects->surfaceIntersectionTest(*shadowRay);
-							if (blockedSurface != nullptr) {
-								
-								shadowRay->hit_surface = blockedSurface;
-								previousRay->radiance = glm::dvec3(0, 0, 0);
-								return;
-							}
-
-						}
-						
 						
 						double cosx = glm::dot(previousRay->hit_surface->normal, glm::normalize(di));
 						double cosy = glm::dot(-light->normal, glm::normalize(di));
 
-						tempcosx = cosx;
-						tempcosy = cosy;
+						// Make sure that surfaces facing away from the lightsource dont give negative values, these values give wrong result
+						cosx = std::max(0.0, cosx);
+						cosy = std::max(0.0, cosy);
 
-						double scalar_radiance = (cosx * cosy) / (glm::length(di) * glm::length(di));
-
-						radiance += scalar_radiance;
+						const double epsilon = 1e-4;
+						if (!isInShadow(previousRay->end_point + epsilon * previousRay->hit_surface->normal, y, previousRay->hit_surface)) {
+							double scalar_radiance = (cosx * cosy) / (glm::length(di) * glm::length(di));
+							radiance += scalar_radiance;
+						}
+						
 					}
 
-					radiance *= surfaceColor * 16.0 / (M_PI * N); // 2*acos(0.0) = pi
-					
-					//previousRay->radiance = tempcosx > 0.1 ? radiance : glm::dvec3(0.0, 0.0, 0.0);
+					radiance *= surfaceColor * 16.0 / (M_PI * N);
+
 					previousRay->radiance = radiance;
 
 					i = 0;
@@ -133,6 +121,22 @@
 					break;
 				}
 			}
+		}
+
+		bool isInShadow(const glm::dvec3& point, const glm::dvec3& lightPos, const Polygon* originSurface) {
+			Ray shadowRay(point, glm::normalize(lightPos - point), glm::dvec3(0,0,0));
+
+			for (Polygon* obj : sceneObjects) {
+				if (obj == originSurface)
+				{
+					continue;
+				}
+
+				if (obj->surfaceIntersectionTest(shadowRay)) {
+					return true;  // Something is blocking the light
+				}
+			}
+			return false;  // Light is visible
 		}
 
 		glm::dvec3 calcColor(Ray& firstRay) {
