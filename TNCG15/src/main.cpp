@@ -6,6 +6,7 @@
 #include "Rectangle.h"
 #include "Camera.h"
 #include "Sphere.h"
+#include "Tetrahedron.h"
 #include <vector>
 
 
@@ -22,7 +23,8 @@ int main()
 
 	std::vector<Polygon*> scene;
 	std::vector<Polygon*> sceneObjects;
-	Sphere* test = new Sphere(glm::dvec3(10, 0, 0), 1.0, glm::dvec3(0, 1.0, 0), false);
+	//Sphere* test = new Sphere(glm::dvec3(10, 0, 0), 1.0, glm::dvec3(0, 1.0, 0), false);
+	Tetrahedron* test = new Tetrahedron(glm::dvec3(5, 0, 2), glm::dvec3(5, 1, 0), glm::dvec3(5, -1, 0), glm::dvec3(7, 0, 0), glm::dvec3(0, 0, 1));
 	scene.push_back(test);
 	sceneObjects.push_back(test);
 	
