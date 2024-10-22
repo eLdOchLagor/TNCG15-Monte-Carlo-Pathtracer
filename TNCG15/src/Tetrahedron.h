@@ -13,7 +13,7 @@ public:
 		mirror = mir;
 		isBoundry = isB;
 		constructTriangles();
-		std::cout << triangles[0].color.b;
+
 	}
 
 	void constructTriangles() {

@@ -24,7 +24,7 @@
 		double aspectRatio; // Aspect ratio of the image (width / height)
 		double imagePlaneWidth, imagePlaneHeight;
 		int widthPixels, heightPixels;
-
+		int i = 0;
 		Rectangle* light = new Rectangle(glm::dvec3(-2, -2, 5), glm::dvec3(-2, 2, 5), glm::dvec3(2, 2, 5), glm::dvec3(2, -2, 5), glm::dvec3(1.0, 1.0, 1.0));
 
 		std::vector<Polygon*> objects;
@@ -47,10 +47,10 @@
 		}
 
 		void shootNextRay(Ray& firstRay) {
-			
+			std::cout << i << "\n";
 			Ray* previousRay = &firstRay;
-			Ray* tempRay = previousRay;
 			
+				
 				for (Polygon* temp : objects)
 				{
 
@@ -71,7 +71,7 @@
 					previousRay->next_ray = newRay;
 					//tempRay = previousRay->next_ray;
 					newRay->previous_ray = previousRay;
-					previousRay = previousRay->next_ray;
+					
 					//shootNextRay(newRay);
 					//prevRay.radiance = newRay.radiance;
 
@@ -82,18 +82,57 @@
 					std::random_device rd;   // Obtain a random seed
 					std::mt19937 gen(rd());  // Standard mersenne_twister_engine seeded with rd()
 					std::uniform_real_distribution<> dis(0.0, 1.0);
+					
+					double Roh = 0.1;
+
 					double randomValue = dis(gen);
 					double randAzimuth = acos(sqrt(1 - randomValue));
 					double randPhi = 2 * M_PI * randomValue;
-					
-					
+					double rr = randPhi / Roh;
+					if (randPhi <= 2 * M_PI) {
 
-					
+						double x = cos(randPhi) * sin(randAzimuth);
+						double y = sin(randPhi) * sin(randAzimuth);
+						double z = cos(randAzimuth);
+						glm::dvec3 tangent, bitangent;
+						glm::dvec3 normal = previousRay->hit_surface->normal;
+						if (abs(normal.x) > abs(normal.y)) {
+							tangent = glm::normalize(glm::cross(glm::dvec3(0.0, 1.0, 0.0), normal));
+						}
+						else {
+							tangent = glm::normalize(glm::cross(glm::dvec3(1.0, 0.0, 0.0), normal));
+						}
+						bitangent = glm::normalize(glm::cross(normal, tangent));
 
-					previousRay->radiance = calculateDirectIllumination(previousRay);
-
-					
-					
+						glm::dvec3 worldDir = glm::normalize(normal * z + tangent * x + bitangent * y);
+	
+						glm::dvec3 startPoint = previousRay->end_point;
+						glm::dvec3 importance = previousRay->radiance;
+						Ray* newRay = new Ray(startPoint, worldDir, importance);
+						previousRay->next_ray = newRay;
+						//tempRay = previousRay->next_ray;
+						newRay->previous_ray = previousRay;
+						i++;
+						shootNextRay(*newRay);
+					}
+					//If we hit a diffuse surface and russian roulette determines that the ray is killed then thoust is the final if-statement determening 
+					//the destiny of the radiance.
+					else {
+						Ray* rayPath = previousRay;
+						rayPath->radiance = calculateDirectIllumination(rayPath);
+						while (rayPath->previous_ray != nullptr) {
+							if (rayPath->previous_ray->hit_surface->mirror) {
+								rayPath->previous_ray->radiance = rayPath->radiance;
+							}
+							else {
+								rayPath->previous_ray->radiance = rayPath->previous_ray->hit_surface->color.r * rayPath->radiance.r +  
+									rayPath->previous_ray->hit_surface->color.g * rayPath->radiance.g + 
+									rayPath->previous_ray->hit_surface->color.b * rayPath->radiance.b +
+									calculateDirectIllumination(rayPath->previous_ray);
+							}
+						}
+					}
+					//previousRay->radiance = calculateDirectIllumination(previousRay);	
 				}
 				else {
 
@@ -171,7 +210,7 @@
 
 			//Create image-matrix from raytrace
 			for (size_t z = 0; z < heightPixels; z++) {
-				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
+				//std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
 				std::vector<glm::dvec3> row;
 				for (size_t y = 0; y < widthPixels; y++) {
 
