@@ -13,6 +13,7 @@ public:
 		mirror = mir;
 		isBoundry = isB;
 		constructTriangles();
+		std::cout << triangles[0].color.b;
 	}
 
 	void constructTriangles() {
@@ -32,7 +33,7 @@ public:
 
 			
 			if (intersectedSurface != nullptr) {
-				std::cout << intersectedSurface->color.b << "\n";
+				//std::cout << intersectedSurface->color.b << "\n";
 				return intersectedSurface;
 			}
 		}
