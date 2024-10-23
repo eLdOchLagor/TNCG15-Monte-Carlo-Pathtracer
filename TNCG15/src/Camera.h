@@ -90,7 +90,7 @@
 					previousRay->next_ray = newRay;
 					//tempRay = previousRay->next_ray;
 					newRay->previous_ray = previousRay;
-
+					previousRay = newRay;
 					//shootNextRay(newRay);
 					//prevRay.radiance = newRay.radiance;
 				}

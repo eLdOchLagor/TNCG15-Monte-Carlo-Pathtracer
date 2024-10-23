@@ -74,7 +74,7 @@ int main()
 	//bottom
 	Rectangle* wall1 = new Rectangle(glm::dvec3(-3, 0, 5), glm::dvec3(0, -6, 5), glm::dvec3(0, -6, -5), glm::dvec3(-3, 0, -5), glm::dvec3(1.0, 1.0, 1.0), 2, 0.5, true);
 	Rectangle* wall2 = new Rectangle(glm::dvec3(0, -6, 5), glm::dvec3(10, -6, 5), glm::dvec3(10, -6, -5), glm::dvec3(0, -6, -5), glm::dvec3(0.1, 1.0, 1.0), 2, 0.5, true);
-	Rectangle* wall3 = new Rectangle(glm::dvec3(10, -6, 5), glm::dvec3(13, 0, 5), glm::dvec3(13, 0, -5), glm::dvec3(10, -6, -5), glm::dvec3(1.0, 1.0, 1.0), 2, 0.5, true); //Målvägg höger //looking at
+	Rectangle* wall3 = new Rectangle(glm::dvec3(10, -6, 5), glm::dvec3(13, 0, 5), glm::dvec3(13, 0, -5), glm::dvec3(10, -6, -5), glm::dvec3(1.0, 1.0, 1.0), 1, 1, true); //Målvägg höger //looking at
 	scene.push_back(wall1);
 	scene.push_back(wall2);
 	scene.push_back(wall3);
