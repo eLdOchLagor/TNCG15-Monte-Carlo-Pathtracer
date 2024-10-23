@@ -28,7 +28,7 @@ public:
 		triangles.push_back(tri4);
 	}
 
-	std::pair<Polygon*, double> surfaceIntersectionTest(Ray& r) override {
+/*	std::pair<Polygon*, double> surfaceIntersectionTest(Ray& r) override {
 		for (Triangle temp : triangles) {
 			std::pair<Polygon*, double> intersectedSurface = temp.surfaceIntersectionTest(r);
 
@@ -41,6 +41,8 @@ public:
 
 		return std::pair(nullptr, std::numeric_limits<double>::max());
 	}
+
+	*/
 
 private:
 	std::vector<Triangle> triangles;

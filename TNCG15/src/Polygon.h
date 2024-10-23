@@ -16,7 +16,7 @@
 		double reflectance;
 		bool isBoundry;
 
-		virtual std::pair<Polygon*, double> surfaceIntersectionTest(Ray& r) { return std::pair(nullptr,999); };
+		virtual double surfaceIntersectionTest(Ray& r) = 0;
 		
 	protected:
 		

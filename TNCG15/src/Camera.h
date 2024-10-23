@@ -58,25 +58,26 @@
 			//std::cout << i << "\n";
 			Ray* previousRay = &firstRay;
 			while (previousRay->depth < 5) {
-				std::vector<std::pair<Polygon*, double>> hitSurfaces;
+				double closestT = -1.0;
+				Polygon* closestSurface = nullptr;
 				
-				for (Polygon* temp : objects)
+				for (Polygon* obj : objects)
 				{
-					std::pair<Polygon*, double> surface = temp->surfaceIntersectionTest(*previousRay);
-					if (surface.first != nullptr) {
-						hitSurfaces.push_back(surface);
-						//previousRay->hit_surface = surface.first;
-						//break;
+					double t = obj->surfaceIntersectionTest(*previousRay);
+					if (t > 0.0 && (closestT < 0.0 || t < closestT)) {
+						closestT = t;
+						closestSurface = obj;
 					}
 
 				}
-				if (hitSurfaces.empty()) // To guard against when no intersection is found, probably due to double precision error
+
+				previousRay->hit_surface = closestSurface;
+
+				if (previousRay->hit_surface == nullptr)
 				{
-					break;
-					
+					return;
 				}
-				previousRay->hit_surface = findClosestSurface(hitSurfaces);
-				hitSurfaces.clear();
+
 				if (previousRay->hit_surface->surfaceID == 0) {
 					previousRay->radiance = glm::dvec3(1.0, 1.0, 1.0);
 					break;
@@ -162,6 +163,8 @@
 			}
 			
 		}
+
+		/*
 		Polygon* findClosestSurface(std::vector<std::pair<Polygon*,double>>& hitObj) {
 			std::pair<Polygon*,double> closestObj = std::pair(hitObj[0]);
 			for (std::pair<Polygon*, double >& obj : hitObj) {
@@ -171,6 +174,8 @@
 			}
 			return closestObj.first;
 		}
+		*/
+
 		glm::dvec3 calculateDirectIllumination(Ray* ray) {
 			glm::dvec3 radiance(0.0, 0.0, 0.0);
 			double N = 15;
@@ -223,7 +228,7 @@
 					continue;
 				}
 
-				if (obj->surfaceIntersectionTest(*shadowRay).first != nullptr) {
+				if (obj->surfaceIntersectionTest(*shadowRay) > 0.0) {
 					delete shadowRay;
 					shadowRay = nullptr;
 					return true;  // Something is blocking the light

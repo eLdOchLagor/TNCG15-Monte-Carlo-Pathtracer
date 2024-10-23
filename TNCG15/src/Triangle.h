@@ -23,7 +23,7 @@ public:
 		isBoundry = isB;
 	}
 
-	std::pair<Polygon*, double> surfaceIntersectionTest(Ray& r) override {
+	double surfaceIntersectionTest(Ray& r) override {
 
 		glm::dvec3 d = glm::normalize(r.direction);
 		glm::dvec3 s = r.start_point;
@@ -52,12 +52,12 @@ public:
 			{
 				//r.hit_surface = this;
 				r.end_point = intersectionPoint;
-				r.radiance = color;
-				return std::pair(this,t);
+				//r.radiance = color;
+				return t;
 			}
 
 		}
-		return std::pair(nullptr, std::numeric_limits<double>::max());
+		return -1.0;
 	}
 
 private:
