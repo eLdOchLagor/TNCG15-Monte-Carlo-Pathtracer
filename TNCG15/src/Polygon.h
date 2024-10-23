@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include "Ray.h"
+#include <utility>
 
 
 
@@ -15,7 +16,7 @@
 		double reflectance;
 		bool isBoundry;
 
-		virtual Polygon* surfaceIntersectionTest(Ray& r) { return nullptr; };
+		virtual std::pair<Polygon*, double> surfaceIntersectionTest(Ray& r) { return std::pair(nullptr,999); };
 		
 	protected:
 		

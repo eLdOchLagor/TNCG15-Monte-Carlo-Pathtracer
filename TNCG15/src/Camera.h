@@ -25,12 +25,12 @@
 		double imagePlaneWidth, imagePlaneHeight;
 		int widthPixels, heightPixels;
 		int i = 0;
-		Rectangle* light = new Rectangle(glm::dvec3(-2, -2, 5), glm::dvec3(-2, 2, 5), glm::dvec3(2, 2, 5), glm::dvec3(2, -2, 5), glm::dvec3(1.0, 1.0, 1.0), 0, 0);
+		Rectangle* light; 
 
 		std::vector<Polygon*> objects;
 		std::vector<Polygon*> sceneObjects;
 
-		Camera(glm::dvec3 pos, glm::dvec3 fwd, glm::dvec3 up, double fov, int width, int height, std::vector<Polygon*> obj, std::vector<Polygon*> sceObj) : position(pos), forward(fwd), fov(fov), widthPixels{ width }, heightPixels{ height }, objects(obj), sceneObjects{sceObj} {
+		Camera(glm::dvec3 pos, glm::dvec3 fwd, glm::dvec3 up, double fov, int width, int height, std::vector<Polygon*> obj, std::vector<Polygon*> sceObj, Rectangle* lightObj) : position(pos), forward(fwd), fov(fov), widthPixels{ width }, heightPixels{ height }, objects(obj), sceneObjects{sceObj}, light{lightObj} {
 			aspectRatio = (double)width / height;
 			right = glm::normalize(glm::cross(forward, up));
 			trueUp = glm::cross(right, forward);
@@ -52,13 +52,17 @@
 			while (true) {
 				for (Polygon* temp : objects)
 				{
-					Polygon* surface = temp->surfaceIntersectionTest(*previousRay);
-					if (surface != nullptr) {
-						previousRay->hit_surface = surface;
+					std::pair<Polygon*, double> surface = temp->surfaceIntersectionTest(*previousRay);
+					if (surface.first != nullptr) {
+						previousRay->hit_surface = surface.first;
 						break;
 					}
 				}
-
+				//if (previousRay->hit_surface->surfaceID == 0) {
+					//glm::dvec3 startPoint = previousRay->end_point;
+					//glm::dvec3 importance = previousRay->radiance;
+					//Ray* newRay = new Ray(startPoint, , importance);
+				//}
 				if (previousRay->hit_surface->surfaceID == 1) {
 					//std::cout << "prickade en mirror";
 					glm::dvec3 d_o = glm::normalize(previousRay->direction) - 2 * glm::dot(glm::normalize(previousRay->direction), previousRay->hit_surface->normal) * previousRay->hit_surface->normal;
@@ -162,7 +166,7 @@
 				cosx = std::max(0.0, cosx);
 				cosy = std::max(0.0, cosy);
 
-				const double epsilon = 1e-4;
+				const double epsilon = 0;//1e-4
 				if (!isInShadow(ray->end_point + epsilon * ray->hit_surface->normal, y, ray->hit_surface)) {
 					double scalar_radiance = (cosx * cosy) / (glm::length(di) * glm::length(di));
 					radiance += scalar_radiance;
@@ -181,7 +185,7 @@
 					continue;
 				}
 
-				if (obj->surfaceIntersectionTest(shadowRay)) {
+				if (obj->surfaceIntersectionTest(shadowRay).first != nullptr) {
 					return true;  // Something is blocking the light
 				}
 			}
@@ -207,7 +211,7 @@
 			std::vector<std::vector<glm::dvec3>> frameBuffer;
 			
 			//Create image-matrix from raytrace
-			int samples = 50;
+			int samples = 100;
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
 				std::vector<glm::dvec3> row;

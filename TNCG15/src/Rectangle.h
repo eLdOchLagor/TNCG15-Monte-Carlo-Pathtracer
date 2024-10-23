@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <utility>
 #include <vector>
 #include <random>
 #include <span>
@@ -23,7 +24,7 @@
 			isBoundry = isB;
 		}
 
-		Polygon* surfaceIntersectionTest(Ray& r) override {
+		std::pair<Polygon*, double> surfaceIntersectionTest(Ray& r) override {
 
 			glm::dvec3 d = glm::normalize(r.direction);
 			glm::dvec3 s = r.start_point;
@@ -46,11 +47,11 @@
 					//r.hit_surface = this;
 					r.end_point = intersectionPoint;
 					r.radiance = color;
-					return this;
+					return std::pair(this,t);
 				}
 				
 			}
-			return nullptr;
+			return std::pair(nullptr,999);
 		}
 
 	private:

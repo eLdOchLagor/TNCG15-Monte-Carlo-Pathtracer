@@ -12,7 +12,7 @@ public:
 		isBoundry = isB;
 	}
 
-	Polygon* surfaceIntersectionTest(Ray& r) override {
+	std::pair<Polygon*, double> surfaceIntersectionTest(Ray& r) override {
 		double c1 = glm::dot(r.direction, r.direction);
 		double c2 = 2.0 * glm::dot(r.direction, r.start_point - center);
 		double c3 = glm::dot(r.start_point - center, r.start_point - center) - radius * radius;
@@ -30,7 +30,7 @@ public:
 			normal = glm::normalize(r.end_point - center);
 
 			r.radiance = color;
-			return this;
+			return std::pair(this,t);
 		}
 		/*else if (arg == 0) {
 			double t1 = -c2 / (2.0 * c1);
@@ -43,7 +43,7 @@ public:
 			return this;
 		}*/
 		
-		return nullptr;
+		return std::pair(nullptr,999);
 	}
 
 	glm::dvec3 center;

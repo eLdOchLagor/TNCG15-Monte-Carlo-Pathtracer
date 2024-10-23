@@ -20,17 +20,23 @@ int main()
 	const glm::dvec3 cam_forward(1,0,0);
 	const double cam_fov = 80;
 	 //TODO: fixa så att aspectRatio och fov beräknas i constructorn istället
-
+	Rectangle* lights;
 	std::vector<Polygon*> scene;
 	std::vector<Polygon*> sceneObjects;
-	Sphere* test = new Sphere(glm::dvec3(10, 0, 0), 1.0, glm::dvec3(0.2, 1.0, 0.2), 2, 0);
+	//Sphere* test = new Sphere(glm::dvec3(10, 0, 0), 1.0, glm::dvec3(0.2, 1.0, 0.2), 2, 0);
 	//Tetrahedron* test = new Tetrahedron(glm::dvec3(8, 0, -2), glm::dvec3(8, 0, -5), glm::dvec3(10, -3, -5), glm::dvec3(10, 3, -5), glm::dvec3(0.2, 1, 0.2), 2, 0);
-	scene.push_back(test);
-	sceneObjects.push_back(test);
+	//scene.push_back(test);
+	//sceneObjects.push_back(test);
 	
 	//Triangle* test = new Triangle(glm::dvec3(10, 4, 5), glm::dvec3(10, 2, -3), glm::dvec3(10, 5, -3),  glm::dvec3(0, 0, 0), false);
 	//scene.push_back(test);
 	
+	//Lights
+	Rectangle* light = new Rectangle(glm::dvec3(-2, -2, 5), glm::dvec3(-2, 2, 5), glm::dvec3(2, 2, 5), glm::dvec3(2, -2, 5), glm::dvec3(1.0, 1.0, 1.0), 0, 0, true);
+	//lights.push_back(light1);
+	
+	//---
+
 	// Floor ----------------------------------------------------------------------------------------
 	Rectangle* floor1 = new Rectangle(glm::dvec3(10,6,-5), glm::dvec3(0,6,-5), glm::dvec3(0,-6,-5), glm::dvec3(10,-6,-5),glm::dvec3(1.0, 0.2, 0.3), 2, 0,true);
 	Triangle* floor2 = new Triangle(glm::dvec3(0, 6, -5), glm::dvec3(-3, 0, -5), glm::dvec3(0, -6, -5), glm::dvec3(1.0, 1.0, 1.0), 2, 0, true);
@@ -66,8 +72,8 @@ int main()
 	scene.push_back(wall5);
 	scene.push_back(wall6);
 	//-----------------------------------------------------------------------------------------------
-
-	Camera mainCamera(cam_pos, cam_forward, cam_up, cam_fov, imageWidth, imageHeight, scene, sceneObjects);
+	scene.push_back(light);
+	Camera mainCamera(cam_pos, cam_forward, cam_up, cam_fov, imageWidth, imageHeight, scene, sceneObjects, light);
 	
 	mainCamera.render();
 

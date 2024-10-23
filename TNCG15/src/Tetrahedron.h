@@ -28,18 +28,18 @@ public:
 		triangles.push_back(tri4);
 	}
 
-	Polygon* surfaceIntersectionTest(Ray& r) override {
+	std::pair<Polygon*, double> surfaceIntersectionTest(Ray& r) override {
 		for (Triangle temp : triangles) {
-			Polygon* intersectedSurface = temp.surfaceIntersectionTest(r);
+			std::pair<Polygon*, double> intersectedSurface = temp.surfaceIntersectionTest(r);
 
 			
-			if (intersectedSurface != nullptr) {
+			if (intersectedSurface.first != nullptr) {
 				//std::cout << intersectedSurface->color.b << "\n";
 				return intersectedSurface;
 			}
 		}
 
-		return nullptr;
+		return std::pair(nullptr,999);
 	}
 
 private:
