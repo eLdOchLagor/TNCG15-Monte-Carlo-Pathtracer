@@ -57,7 +57,7 @@ public:
 			}
 
 		}
-		return std::pair(nullptr,999);
+		return std::pair(nullptr, std::numeric_limits<double>::max());
 	}
 
 private:

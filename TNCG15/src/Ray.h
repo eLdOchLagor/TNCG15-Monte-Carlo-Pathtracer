@@ -44,6 +44,7 @@ class Polygon;
 		Polygon* hit_surface;
 		Ray* previous_ray;
 		Ray* next_ray;
+		int depth = 0;
 
 	private:
 

@@ -57,7 +57,7 @@
 		void shootNextRay(Ray& firstRay) {
 			//std::cout << i << "\n";
 			Ray* previousRay = &firstRay;
-			while (true) {
+			while (previousRay->depth < 5) {
 				std::vector<std::pair<Polygon*, double>> hitSurfaces;
 				
 				for (Polygon* temp : objects)
@@ -66,8 +66,14 @@
 					if (surface.first != nullptr) {
 						hitSurfaces.push_back(surface);
 						//previousRay->hit_surface = surface.first;
-						
+						//break;
 					}
+
+				}
+				if (hitSurfaces.empty()) // To guard against when no intersection is found, probably due to double precision error
+				{
+					break;
+					
 				}
 				previousRay->hit_surface = findClosestSurface(hitSurfaces);
 				hitSurfaces.clear();
@@ -82,6 +88,7 @@
 					glm::dvec3 startPoint = previousRay->end_point;
 					glm::dvec3 importance = previousRay->radiance;
 					Ray* newRay = new Ray(startPoint, d_o, importance);
+					newRay->depth++;
 					previousRay->next_ray = newRay;
 					//tempRay = previousRay->next_ray;
 					newRay->previous_ray = previousRay;
@@ -113,6 +120,7 @@
 						glm::dvec3 startPoint = previousRay->end_point;
 						glm::dvec3 importance = previousRay->radiance;
 						Ray* newRay = new Ray(startPoint, worldDir, importance);
+						newRay->depth++;
 						previousRay->next_ray = newRay;
 						//tempRay = previousRay->next_ray;
 						newRay->previous_ray = previousRay;
@@ -246,7 +254,7 @@
 			
 			//Create image-matrix from raytrace
 
-			int samples = 100;
+			int samples = 20;
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
 				std::vector<glm::dvec3> row;

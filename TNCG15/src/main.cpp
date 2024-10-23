@@ -13,8 +13,8 @@
 
 int main()
 {
-	const int imageWidth = 400;
-	const int imageHeight = 400;
+	const int imageWidth = 200;
+	const int imageHeight = 200;
 	const glm::dvec3 cam_pos(0, 0, 0);
 	const glm::dvec3 cam_up(0,0,1);
 	const glm::dvec3 cam_forward(1,0,0);
@@ -25,9 +25,12 @@ int main()
 	std::vector<Polygon*> sceneObjects;
 
 	//Sphere* test = new Sphere(glm::dvec3(10, 0, 0), 1.0, glm::dvec3(0.2, 1.0, 0.2), 2, 0);
+	//Sphere* sphere2 = new Sphere(glm::dvec3(8, 8, -3), 2.0, glm::dvec3(0.5, 0.2, 0.8), 2, 0.5); funkar inte
 
-	//Sphere* sphere1 = new Sphere(glm::dvec3(10, 0, 0), 1.0, glm::dvec3(0.2, 1.0, 0.2), 2, 0.5);
-	//Sphere* sphere2 = new Sphere(glm::dvec3(7, -2, -1), 3.0, glm::dvec3(0.5, 0.2, 0.8), 2, 0.5);
+	Sphere* sphere1 = new Sphere(glm::dvec3(10, 0, 0), 1.0, glm::dvec3(0.2, 1.0, 0.2), 2, 0.5);
+	
+	//scene.push_back(sphere2);
+	//sceneObjects.push_back(sphere2);
 	//Tetrahedron* tetra = new Tetrahedron(glm::dvec3(5, -2, -2), glm::dvec3(3, -2, -5), glm::dvec3(7, -5, -5), glm::dvec3(7, 1, -5), glm::dvec3(0.2, 1, 0.2), 2, 0);
 	/*sceneObjects.push_back(sphere2);
 	scene.push_back(sphere2);
@@ -36,11 +39,13 @@ int main()
 	//scene.push_back(test);
 	//sceneObjects.push_back(test);
 	
+	scene.push_back(sphere1);
+	sceneObjects.push_back(sphere1);
 	//Triangle* test = new Triangle(glm::dvec3(10, 4, 5), glm::dvec3(10, 2, -3), glm::dvec3(10, 5, -3),  glm::dvec3(0, 0, 0), false);
 	//scene.push_back(test);
 	
 	//Lights ----------------------------------------------------------------------------------------
-	Rectangle* light1 = new Rectangle(glm::dvec3(-2, -2, 5), glm::dvec3(-2, 2, 5), glm::dvec3(2, 2, 5), glm::dvec3(2, -2, 5), glm::dvec3(1.0, 1.0, 1.0), 0, 0, true);
+	Rectangle* light1 = new Rectangle(glm::dvec3(8, -2, 4.99), glm::dvec3(8, 2, 4.99), glm::dvec3(11, 2, 4.99), glm::dvec3(11, -2, 4.99), glm::dvec3(1.0, 1.0, 1.0), 0, 0, true);
 	lights.push_back(light1);
 	scene.push_back(light1);
 	//-----------------------------------------------------------------------------------------------
