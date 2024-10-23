@@ -59,16 +59,18 @@
 			Ray* previousRay = &firstRay;
 			while (true) {
 				std::vector<std::pair<Polygon*, double>> hitSurfaces;
+				
 				for (Polygon* temp : objects)
 				{
 					std::pair<Polygon*, double> surface = temp->surfaceIntersectionTest(*previousRay);
 					if (surface.first != nullptr) {
+						hitSurfaces.push_back(surface);
+						//previousRay->hit_surface = surface.first;
 						
-						previousRay->hit_surface = surface.first;
-						break;
 					}
 				}
-
+				previousRay->hit_surface = findClosestSurface(hitSurfaces);
+				hitSurfaces.clear();
 				if (previousRay->hit_surface->surfaceID == 0) {
 					previousRay->radiance = glm::dvec3(1.0, 1.0, 1.0);
 					break;
@@ -90,9 +92,10 @@
 				else if (previousRay->hit_surface->surfaceID == 2) {
 					double Roh = previousRay->hit_surface->reflectance;
 
-					double randomValue = generateRandomValue();
-					double randAzimuth = acos(sqrt(1 - randomValue));
-					double randPhi = 2 * M_PI * randomValue;
+					double randomValue1 = generateRandomValue();
+					double randomValue2 = generateRandomValue();
+					double randAzimuth = acos(sqrt(1 - randomValue1));
+					double randPhi = 2 * M_PI * randomValue2;
 					double rr = randPhi / Roh;
 					if (rr <= 2 * M_PI) {
 
@@ -142,15 +145,23 @@
 				else {
 					rayPath->previous_ray->radiance = glm::dvec3(rayPath->previous_ray->hit_surface->color.r * rayPath->radiance.r,
 						rayPath->previous_ray->hit_surface->color.g * rayPath->radiance.g,
-						rayPath->previous_ray->hit_surface->color.b * rayPath->radiance.b);
-					if (rayPath->hit_surface->surfaceID != 0) {
-						rayPath->previous_ray->radiance += calculateDirectIllumination(rayPath->previous_ray);
-					}
+						rayPath->previous_ray->hit_surface->color.b * rayPath->radiance.b) +
+						calculateDirectIllumination(rayPath->previous_ray);
+					
 						
 					rayPath = rayPath->previous_ray;
 				}
 			}
 			
+		}
+		Polygon* findClosestSurface(std::vector<std::pair<Polygon*,double>>& hitObj) {
+			std::pair<Polygon*,double> closestObj = std::pair(hitObj[0]);
+			for (std::pair<Polygon*, double >& obj : hitObj) {
+				if (obj.second < closestObj.second) {
+					closestObj = obj;
+				}
+			}
+			return closestObj.first;
 		}
 		glm::dvec3 calculateDirectIllumination(Ray* ray) {
 			glm::dvec3 radiance(0.0, 0.0, 0.0);
@@ -188,10 +199,12 @@
 					}
 
 				}
+				double A = glm::length(e1) * glm::length(e2);
+				radiance *= A/M_PI;
 			}
 			
 
-			return radiance *= 16.0 / (M_PI * N); //surfaceColor *
+			return radiance /=N; //surfaceColor *
 		}
 		bool isInShadow(const glm::dvec3& point, const glm::dvec3& lightPos, const Polygon* originSurface) {
 			Ray* shadowRay = new Ray(point, glm::normalize(lightPos - point), glm::dvec3(0,0,0));
@@ -203,9 +216,13 @@
 				}
 
 				if (obj->surfaceIntersectionTest(*shadowRay).first != nullptr) {
+					delete shadowRay;
+					shadowRay = nullptr;
 					return true;  // Something is blocking the light
 				}
 			}
+			delete shadowRay;
+			shadowRay = nullptr;
 			return false;  // Light is visible
 		}
 
@@ -229,7 +246,7 @@
 			
 			//Create image-matrix from raytrace
 
-			int samples = 400;
+			int samples = 80;
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
 				std::vector<glm::dvec3> row;

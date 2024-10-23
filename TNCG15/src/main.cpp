@@ -26,9 +26,13 @@ int main()
 
 	//Sphere* test = new Sphere(glm::dvec3(10, 0, 0), 1.0, glm::dvec3(0.2, 1.0, 0.2), 2, 0);
 
-	Sphere* test = new Sphere(glm::dvec3(10, 0, 0), 1.0, glm::dvec3(0.2, 1.0, 0.2), 2, 0.5);
-
-	//Tetrahedron* test = new Tetrahedron(glm::dvec3(8, 0, -2), glm::dvec3(8, 0, -5), glm::dvec3(10, -3, -5), glm::dvec3(10, 3, -5), glm::dvec3(0.2, 1, 0.2), 2, 0);
+	//Sphere* sphere1 = new Sphere(glm::dvec3(10, 0, 0), 1.0, glm::dvec3(0.2, 1.0, 0.2), 2, 0.5);
+	//Sphere* sphere2 = new Sphere(glm::dvec3(7, -2, -1), 3.0, glm::dvec3(0.5, 0.2, 0.8), 2, 0.5);
+	//Tetrahedron* tetra = new Tetrahedron(glm::dvec3(5, -2, -2), glm::dvec3(3, -2, -5), glm::dvec3(7, -5, -5), glm::dvec3(7, 1, -5), glm::dvec3(0.2, 1, 0.2), 2, 0);
+	/*sceneObjects.push_back(sphere2);
+	scene.push_back(sphere2);
+	sceneObjects.push_back(sphere1);
+	scene.push_back(sphere1);*/
 	//scene.push_back(test);
 	//sceneObjects.push_back(test);
 	
@@ -39,7 +43,6 @@ int main()
 	Rectangle* light1 = new Rectangle(glm::dvec3(-2, -2, 5), glm::dvec3(-2, 2, 5), glm::dvec3(2, 2, 5), glm::dvec3(2, -2, 5), glm::dvec3(1.0, 1.0, 1.0), 0, 0, true);
 	lights.push_back(light1);
 	scene.push_back(light1);
-	
 	//-----------------------------------------------------------------------------------------------
 
 	// Floor ----------------------------------------------------------------------------------------
