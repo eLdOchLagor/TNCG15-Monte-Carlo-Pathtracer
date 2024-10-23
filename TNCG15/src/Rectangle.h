@@ -45,7 +45,7 @@
 				if (0.0 <= a && a <= 1.0 && 0.0 <= b && b <= 1.0)
 				{
 					//r.hit_surface = this;
-					r.end_point = intersectionPoint;
+					//r.end_point = intersectionPoint;
 					//r.radiance = color;
 					return t;
 				}

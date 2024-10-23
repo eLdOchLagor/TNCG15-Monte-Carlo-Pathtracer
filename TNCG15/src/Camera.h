@@ -72,11 +72,8 @@
 				}
 
 				previousRay->hit_surface = closestSurface;
-
-				if (previousRay->hit_surface == nullptr)
-				{
-					return;
-				}
+				previousRay->end_point = previousRay->start_point + closestT * previousRay->direction;
+				
 
 				if (previousRay->hit_surface->surfaceID == 0) {
 					previousRay->radiance = glm::dvec3(1.0, 1.0, 1.0);

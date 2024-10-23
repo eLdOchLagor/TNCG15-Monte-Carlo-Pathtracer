@@ -51,7 +51,7 @@ public:
 			if (0.0 <= u && 0.0 <= v && u + v <= 1.0 && t >= 0)
 			{
 				//r.hit_surface = this;
-				r.end_point = intersectionPoint;
+				//r.end_point = intersectionPoint;
 				//r.radiance = color;
 				return t;
 			}

@@ -26,8 +26,8 @@ public:
 			double t = t1 < t2 ? t1 : t2;
 			//double t = (t1 >= 0) && t1 < t2 ? t1 : (t2 >= 0) ? t2 : -1.0;
 			//if (t < 0) return nullptr;
-			r.end_point = r.start_point + r.direction * t;
-			normal = glm::normalize(r.end_point - center);
+			
+			normal = glm::normalize(r.start_point + r.direction * t - center);
 
 			//r.radiance = color;
 			return t;
