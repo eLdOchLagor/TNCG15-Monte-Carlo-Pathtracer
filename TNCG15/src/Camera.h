@@ -165,7 +165,7 @@
 		}
 		glm::dvec3 calculateDirectIllumination(Ray* ray) {
 			glm::dvec3 radiance(0.0, 0.0, 0.0);
-			int N = 15;
+			double N = 15;
 			glm::dvec3 surfaceColor = ray->hit_surface->color;
 			for (Polygon* light : lights)
 			{
@@ -204,7 +204,7 @@
 			}
 			
 
-			return radiance /=N; //surfaceColor *
+			return radiance *= surfaceColor/(N); //surfaceColor *
 		}
 		bool isInShadow(const glm::dvec3& point, const glm::dvec3& lightPos, const Polygon* originSurface) {
 			Ray* shadowRay = new Ray(point, glm::normalize(lightPos - point), glm::dvec3(0,0,0));
@@ -246,7 +246,7 @@
 			
 			//Create image-matrix from raytrace
 
-			int samples = 80;
+			int samples = 100;
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
 				std::vector<glm::dvec3> row;
