@@ -46,6 +46,14 @@
 			return firstRay;
 		}
 
+		double generateRandomValue() {
+			static std::random_device rd;   // Obtain a random seed
+			static std::mt19937 gen(rd());  // Standard mersenne_twister_engine seeded with rd()
+			std::uniform_real_distribution<> dis(0.0, 1.0);
+
+			return dis(rd);
+		}
+
 		void shootNextRay(Ray& firstRay) {
 			//std::cout << i << "\n";
 			Ray* previousRay = &firstRay;
@@ -58,7 +66,7 @@
 						break;
 					}
 				}
-
+				
 				if (previousRay->hit_surface->surfaceID == 1) {
 					//std::cout << "prickade en mirror";
 					glm::dvec3 d_o = glm::normalize(previousRay->direction) - 2 * glm::dot(glm::normalize(previousRay->direction), previousRay->hit_surface->normal) * previousRay->hit_surface->normal;
@@ -73,14 +81,9 @@
 					//prevRay.radiance = newRay.radiance;
 				}
 				else if (previousRay->hit_surface->surfaceID == 2) {
+					double Roh = 0.1;
 
-					std::random_device rd;   // Obtain a random seed
-					std::mt19937 gen(rd());  // Standard mersenne_twister_engine seeded with rd()
-					std::uniform_real_distribution<> dis(0.0, 1.0);
-
-					double Roh = 0.7;
-
-					double randomValue = dis(gen);
+					double randomValue = generateRandomValue();
 					double randAzimuth = acos(sqrt(1 - randomValue));
 					double randPhi = 2 * M_PI * randomValue;
 					double rr = randPhi / Roh;
@@ -93,8 +96,6 @@
 						glm::dvec3 normal = previousRay->hit_surface->normal;
 
 						tangent = glm::normalize(-previousRay->direction + glm::dot(normal, previousRay->direction) * normal);
-
-
 						bitangent = glm::normalize(glm::cross(normal, tangent));
 
 						glm::dvec3 worldDir = glm::normalize(normal * z + tangent * x + bitangent * y);
@@ -149,8 +150,8 @@
 
 			for (size_t n = 0; n < N; n++)
 			{
-				double s = (double)rand() / RAND_MAX;
-				double t = (double)rand() / RAND_MAX;
+				double s = generateRandomValue();
+				double t = generateRandomValue();
 
 				glm::dvec3 y = glm::dvec3(light->verticies[0]) + s * e1 + t * e2;
 				glm::dvec3 di = y - glm::dvec3(ray->end_point);
@@ -207,23 +208,16 @@
 			std::vector<std::vector<glm::dvec3>> frameBuffer;
 			
 			//Create image-matrix from raytrace
-			int samples = 50;
+			int samples = 20;
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
 				std::vector<glm::dvec3> row;
 				for (size_t y = 0; y < widthPixels; y++) {
 					glm::dvec3 finalCol (0.0, 0.0, 0.0); 
-					
-
-					std::random_device rd;   // Obtain a random seed
-					std::mt19937 gen(rd());  // Standard mersenne_twister_engine seeded with rd()
-					std::uniform_real_distribution<> dis(0.0, 1.0);
 
 					for (size_t N = 0; N < samples; N++) {
-						
-
-						double u_offset = dis(gen);
-						double v_offset = dis(gen);
+						double u_offset = generateRandomValue();
+						double v_offset = generateRandomValue();
 
 						double u = ((y + u_offset) / widthPixels) * imagePlaneWidth - imagePlaneWidth / 2;
 						double v = (1.0 - (z + v_offset) / heightPixels) * imagePlaneHeight - imagePlaneHeight / 2;
