@@ -7,7 +7,7 @@ class Polygon;
 	class Ray {
 	public:
 		
-		Ray(const glm::dvec3& start, glm::dvec3 dir, glm::dvec3 ray_col, Polygon* hit = nullptr, Ray* prev_r = nullptr, Ray* next_r = nullptr) : start_point{ start }, direction{ glm::normalize(dir) }, previous_ray{prev_r}, next_ray{next_r}, hit_surface{hit} {
+		Ray(const glm::dvec3& start, glm::dvec3 dir, glm::dvec3 ray_col, Polygon* hit = nullptr, Ray* prev_r = nullptr, Ray* next_r = nullptr, double refmed = 1) : start_point{ start }, direction{ glm::normalize(dir) }, previous_ray{prev_r}, next_ray{next_r}, hit_surface{hit}, currentRefractiveMedium{refmed} {
 			radiance = ray_col;
 			end_point = glm::dvec3(0, 0, 0);
 			
@@ -40,7 +40,8 @@ class Polygon;
 		glm::dvec3 start_point;
 		glm::dvec3 end_point;
 		glm::dvec3 direction;
-		glm::dvec3 radiance;		
+		glm::dvec3 radiance;
+		double currentRefractiveMedium;
 		Polygon* hit_surface;
 		Ray* previous_ray;
 		Ray* next_ray;

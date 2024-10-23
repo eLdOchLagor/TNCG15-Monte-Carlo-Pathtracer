@@ -82,17 +82,47 @@
 
 				if (previousRay->hit_surface->surfaceID == 1) {
 					//std::cout << "prickade en mirror";
-					glm::dvec3 d_o = glm::normalize(previousRay->direction) - 2 * glm::dot(glm::normalize(previousRay->direction), previousRay->hit_surface->normal) * previousRay->hit_surface->normal;
-					glm::dvec3 startPoint = previousRay->end_point;
-					glm::dvec3 importance = previousRay->radiance;
-					Ray* newRay = new Ray(startPoint, d_o, importance);
-					newRay->depth++;
-					previousRay->next_ray = newRay;
-					//tempRay = previousRay->next_ray;
-					newRay->previous_ray = previousRay;
-					previousRay = newRay;
-					//shootNextRay(newRay);
-					//prevRay.radiance = newRay.radiance;
+					if (previousRay->hit_surface->reflectance != 1) {
+						double randomValue = generateRandomValue();
+						if (randomValue < previousRay->hit_surface->reflectance) {
+							glm::dvec3 d_o = glm::normalize(previousRay->direction) - 2 * glm::dot(glm::normalize(previousRay->direction), previousRay->hit_surface->normal) * previousRay->hit_surface->normal;
+							glm::dvec3 startPoint = previousRay->end_point;
+							glm::dvec3 importance = previousRay->radiance;
+							Ray* newRay = new Ray(startPoint, d_o, importance);
+							newRay->depth++;
+							previousRay->next_ray = newRay;
+							//tempRay = previousRay->next_ray;
+							newRay->previous_ray = previousRay;
+							previousRay = newRay;
+						}
+						else {
+							double R = previousRay->currentRefractiveMedium == 1 ? 1 / 1.5 : 1.5;
+							glm::dvec3 d_refr = R * previousRay->direction + previousRay->hit_surface->normal * (-R * glm::dot(previousRay->hit_surface->normal, previousRay->direction)) -
+								sqrt(1 - R * R * (1 - glm::dot(previousRay->hit_surface->normal, previousRay->direction) * glm::dot(previousRay->hit_surface->normal, previousRay->direction)));
+							glm::dvec3 startPoint = previousRay->end_point;
+							glm::dvec3 importance = previousRay->radiance;
+							Ray* newRay = new Ray(startPoint, d_refr, importance);
+							newRay->depth++;
+							previousRay->next_ray = newRay;
+							//tempRay = previousRay->next_ray;
+							newRay->previous_ray = previousRay;
+							previousRay = newRay;
+						}
+					}
+					else {
+						glm::dvec3 d_o = glm::normalize(previousRay->direction) - 2 * glm::dot(glm::normalize(previousRay->direction), previousRay->hit_surface->normal) * previousRay->hit_surface->normal;
+						glm::dvec3 startPoint = previousRay->end_point;
+						glm::dvec3 importance = previousRay->radiance;
+						Ray* newRay = new Ray(startPoint, d_o, importance);
+						newRay->depth++;
+						previousRay->next_ray = newRay;
+						//tempRay = previousRay->next_ray;
+						newRay->previous_ray = previousRay;
+						previousRay = newRay;
+						//shootNextRay(newRay);
+						//prevRay.radiance = newRay.radiance;
+					}
+					
 				}
 				else if (previousRay->hit_surface->surfaceID == 2) {
 					double Roh = previousRay->hit_surface->reflectance;
@@ -256,7 +286,7 @@
 			
 			//Create image-matrix from raytrace
 
-			int samples = 20;
+			int samples = 50;
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
 				std::vector<glm::dvec3> row;
