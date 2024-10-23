@@ -23,8 +23,8 @@ int main()
 
 	std::vector<Polygon*> scene;
 	std::vector<Polygon*> sceneObjects;
-	Sphere* test = new Sphere(glm::dvec3(10, 0, 0), 1.0, glm::dvec3(0, 1.0, 0), 2, 0);
-	//Tetrahedron* test = new Tetrahedron(glm::dvec3(8, 0, -2), glm::dvec3(8, 0, -5), glm::dvec3(10, -3, -5), glm::dvec3(10, 3, -5), glm::dvec3(0, 0, 1), 2, 0);
+	Sphere* test = new Sphere(glm::dvec3(10, 0, 0), 1.0, glm::dvec3(0.2, 1.0, 0.2), 2, 0);
+	//Tetrahedron* test = new Tetrahedron(glm::dvec3(8, 0, -2), glm::dvec3(8, 0, -5), glm::dvec3(10, -3, -5), glm::dvec3(10, 3, -5), glm::dvec3(0.2, 1, 0.2), 2, 0);
 	scene.push_back(test);
 	sceneObjects.push_back(test);
 	

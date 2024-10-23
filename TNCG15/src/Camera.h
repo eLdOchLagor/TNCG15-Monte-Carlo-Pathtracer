@@ -38,10 +38,10 @@
 			imagePlaneWidth = imagePlaneHeight * aspectRatio;
 		}
 
-		Ray shootStartRay(glm::dvec3 eye, double u, double v) {
+		Ray* shootStartRay(glm::dvec3 eye, double u, double v) {
 			//std::cout << right.y;
 			glm::dvec3 direction = glm::normalize(forward + u * right + v * trueUp);
-			Ray firstRay = Ray(eye, direction, glm::dvec3(1.0, 1.0, 1.0));
+			Ray* firstRay = new Ray(eye, direction, glm::dvec3(1.0, 1.0, 1.0));
 
 			return firstRay;
 		}
@@ -205,9 +205,9 @@
 
 		void render() {
 			std::vector<std::vector<glm::dvec3>> frameBuffer;
-
+			
 			//Create image-matrix from raytrace
-			int samples = 2000;
+			int samples = 50;
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
 				std::vector<glm::dvec3> row;
@@ -227,15 +227,17 @@
 
 						double u = ((y + u_offset) / widthPixels) * imagePlaneWidth - imagePlaneWidth / 2;
 						double v = (1.0 - (z + v_offset) / heightPixels) * imagePlaneHeight - imagePlaneHeight / 2;
+						
+						Ray* firstRay = shootStartRay(glm::dvec3(-1.0, 0.0, 0.0), u, v); // Have to adjust eye pos based on camera position
+						shootNextRay(*firstRay);
 
-						Ray firstRay = shootStartRay(glm::dvec3(-1.0, 0.0, 0.0), u, v); // Have to adjust eye pos based on camera position
-						shootNextRay(firstRay);
-
-						glm::dvec3 pixelColor = calcColor(firstRay);
+						glm::dvec3 pixelColor = calcColor(*firstRay);
 
 						//std::cout << firstRay.radiance.x << " " << firstRay.radiance.y << " " << firstRay.radiance.z << "\n";
 						
-						finalCol += firstRay.radiance;
+						finalCol += firstRay->radiance;
+						(*firstRay).dealocateRay(*firstRay);
+						
 					}
 					finalCol /= samples;
 					row.push_back(finalCol); //TODO: replace with generateRay

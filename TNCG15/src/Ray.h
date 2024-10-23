@@ -1,5 +1,6 @@
 #pragma once
 #include <glm/glm.hpp>
+#include <iostream>
 
 class Polygon;
 
@@ -10,6 +11,26 @@ class Polygon;
 			radiance = ray_col;
 			end_point = glm::dvec3(0, 0, 0);
 			
+		}
+		~Ray() {
+			hit_surface = nullptr;
+			previous_ray = nullptr;
+			next_ray = nullptr;
+			
+		}
+
+		void dealocateRay(Ray& ray){
+			Ray* currentptr = &ray;
+			
+			Ray* nextptr = nullptr;
+
+			while (currentptr != nullptr) {
+				nextptr = currentptr->next_ray;
+				
+				delete currentptr;
+				
+				currentptr = nextptr;
+			}
 		}
 
 		glm::dvec3 getColor(glm::dvec3 ray_col);
