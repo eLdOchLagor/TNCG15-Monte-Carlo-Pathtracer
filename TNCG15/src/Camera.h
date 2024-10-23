@@ -49,8 +49,7 @@
 		void shootNextRay(Ray& firstRay) {
 			//std::cout << i << "\n";
 			Ray* previousRay = &firstRay;
-			
-				
+			while (true) {
 				for (Polygon* temp : objects)
 				{
 					Polygon* surface = temp->surfaceIntersectionTest(*previousRay);
@@ -69,18 +68,16 @@
 					previousRay->next_ray = newRay;
 					//tempRay = previousRay->next_ray;
 					newRay->previous_ray = previousRay;
-					
+
 					//shootNextRay(newRay);
 					//prevRay.radiance = newRay.radiance;
-
-					
 				}
 				else if (previousRay->hit_surface->surfaceID == 2) {
-					
+
 					std::random_device rd;   // Obtain a random seed
 					std::mt19937 gen(rd());  // Standard mersenne_twister_engine seeded with rd()
 					std::uniform_real_distribution<> dis(0.0, 1.0);
-					
+
 					double Roh = 0.7;
 
 					double randomValue = dis(gen);
@@ -94,14 +91,14 @@
 						double z = cos(randAzimuth);
 						glm::dvec3 tangent, bitangent;
 						glm::dvec3 normal = previousRay->hit_surface->normal;
-						
-						tangent =glm::normalize( - previousRay->direction + glm::dot(normal, previousRay->direction) * normal);
-						
-						
+
+						tangent = glm::normalize(-previousRay->direction + glm::dot(normal, previousRay->direction) * normal);
+
+
 						bitangent = glm::normalize(glm::cross(normal, tangent));
 
 						glm::dvec3 worldDir = glm::normalize(normal * z + tangent * x + bitangent * y);
-	
+
 						glm::dvec3 startPoint = previousRay->end_point;
 						glm::dvec3 importance = previousRay->radiance;
 						Ray* newRay = new Ray(startPoint, worldDir, importance);
@@ -109,34 +106,37 @@
 						//tempRay = previousRay->next_ray;
 						newRay->previous_ray = previousRay;
 						i++;
-						shootNextRay(*newRay);
+						previousRay = newRay;
 					}
 					//If we hit a diffuse surface and russian roulette determines that the ray is killed then thoust is the final if-statement determening 
 					//the destiny of the radiance.
 					else {
-						Ray* rayPath = previousRay;
-						rayPath->radiance = calculateDirectIllumination(rayPath);
-						while (rayPath->previous_ray != nullptr) {
-							if (rayPath->previous_ray->hit_surface->surfaceID == 1) {
-								rayPath->previous_ray->radiance = rayPath->radiance;
-								rayPath = rayPath->previous_ray;
-							}
-							else {
-								rayPath->previous_ray->radiance = glm::dvec3(rayPath->previous_ray->hit_surface->color.r * rayPath->radiance.r,  
-									rayPath->previous_ray->hit_surface->color.g * rayPath->radiance.g, 
-									rayPath->previous_ray->hit_surface->color.b * rayPath->radiance.b) +
-									calculateDirectIllumination(rayPath->previous_ray);
-								rayPath = rayPath->previous_ray;
-							}
-						}
+						break;
+						
 					}
 					//previousRay->radiance = calculateDirectIllumination(previousRay);	
 				}
 				else {
 
-					
-					
+
+
 				}
+			}
+			Ray* rayPath = previousRay;
+			rayPath->radiance = calculateDirectIllumination(rayPath);
+			while (rayPath->previous_ray != nullptr) {
+				if (rayPath->previous_ray->hit_surface->surfaceID == 1) {
+					rayPath->previous_ray->radiance = rayPath->radiance;
+					rayPath = rayPath->previous_ray;
+				}
+				else {
+					rayPath->previous_ray->radiance = glm::dvec3(rayPath->previous_ray->hit_surface->color.r * rayPath->radiance.r,
+						rayPath->previous_ray->hit_surface->color.g * rayPath->radiance.g,
+						rayPath->previous_ray->hit_surface->color.b * rayPath->radiance.b) +
+						calculateDirectIllumination(rayPath->previous_ray);
+					rayPath = rayPath->previous_ray;
+				}
+			}
 			
 		}
 		glm::dvec3 calculateDirectIllumination(Ray* ray) {
@@ -231,12 +231,10 @@
 						Ray* firstRay = shootStartRay(glm::dvec3(-1.0, 0.0, 0.0), u, v); // Have to adjust eye pos based on camera position
 						shootNextRay(*firstRay);
 
-						glm::dvec3 pixelColor = calcColor(*firstRay);
-
 						//std::cout << firstRay.radiance.x << " " << firstRay.radiance.y << " " << firstRay.radiance.z << "\n";
 						
 						finalCol += firstRay->radiance;
-						(*firstRay).dealocateRay(*firstRay);
+						firstRay->dealocateRay(*firstRay);
 						
 					}
 					finalCol /= samples;
