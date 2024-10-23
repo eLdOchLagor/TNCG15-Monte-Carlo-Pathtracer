@@ -25,12 +25,12 @@
 		double imagePlaneWidth, imagePlaneHeight;
 		int widthPixels, heightPixels;
 		int i = 0;
-		Rectangle* light; 
+		std::vector<Polygon*> lights; 
 
 		std::vector<Polygon*> objects;
 		std::vector<Polygon*> sceneObjects;
 
-		Camera(glm::dvec3 pos, glm::dvec3 fwd, glm::dvec3 up, double fov, int width, int height, std::vector<Polygon*> obj, std::vector<Polygon*> sceObj, Rectangle* lightObj) : position(pos), forward(fwd), fov(fov), widthPixels{ width }, heightPixels{ height }, objects(obj), sceneObjects{sceObj}, light{lightObj} {
+		Camera(glm::dvec3 pos, glm::dvec3 fwd, glm::dvec3 up, double fov, int width, int height, std::vector<Polygon*> obj, std::vector<Polygon*> sceObj, std::vector<Polygon*> lightObj) : position(pos), forward(fwd), fov(fov), widthPixels{ width }, heightPixels{ height }, objects(obj), sceneObjects{sceObj}, lights{lightObj} {
 			aspectRatio = (double)width / height;
 			right = glm::normalize(glm::cross(forward, up));
 			trueUp = glm::cross(right, forward);
@@ -46,23 +46,34 @@
 			return firstRay;
 		}
 
+		double generateRandomValue() {
+			static std::random_device rd;   // Obtain a random seed
+			static std::mt19937 gen(rd());  // Standard mersenne_twister_engine seeded with rd()
+			std::uniform_real_distribution<> dis(0.0, 1.0);
+
+			return dis(rd);
+		}
+
 		void shootNextRay(Ray& firstRay) {
 			//std::cout << i << "\n";
 			Ray* previousRay = &firstRay;
 			while (true) {
+				std::vector<std::pair<Polygon*, double>> hitSurfaces;
 				for (Polygon* temp : objects)
 				{
 					std::pair<Polygon*, double> surface = temp->surfaceIntersectionTest(*previousRay);
 					if (surface.first != nullptr) {
+						
 						previousRay->hit_surface = surface.first;
 						break;
 					}
 				}
-				//if (previousRay->hit_surface->surfaceID == 0) {
-					//glm::dvec3 startPoint = previousRay->end_point;
-					//glm::dvec3 importance = previousRay->radiance;
-					//Ray* newRay = new Ray(startPoint, , importance);
-				//}
+
+				if (previousRay->hit_surface->surfaceID == 0) {
+					previousRay->radiance = glm::dvec3(1.0, 1.0, 1.0);
+					break;
+				}
+
 				if (previousRay->hit_surface->surfaceID == 1) {
 					//std::cout << "prickade en mirror";
 					glm::dvec3 d_o = glm::normalize(previousRay->direction) - 2 * glm::dot(glm::normalize(previousRay->direction), previousRay->hit_surface->normal) * previousRay->hit_surface->normal;
@@ -77,14 +88,9 @@
 					//prevRay.radiance = newRay.radiance;
 				}
 				else if (previousRay->hit_surface->surfaceID == 2) {
+					double Roh = previousRay->hit_surface->reflectance;
 
-					std::random_device rd;   // Obtain a random seed
-					std::mt19937 gen(rd());  // Standard mersenne_twister_engine seeded with rd()
-					std::uniform_real_distribution<> dis(0.0, 1.0);
-
-					double Roh = 0.7;
-
-					double randomValue = dis(gen);
+					double randomValue = generateRandomValue();
 					double randAzimuth = acos(sqrt(1 - randomValue));
 					double randPhi = 2 * M_PI * randomValue;
 					double rr = randPhi / Roh;
@@ -97,8 +103,6 @@
 						glm::dvec3 normal = previousRay->hit_surface->normal;
 
 						tangent = glm::normalize(-previousRay->direction + glm::dot(normal, previousRay->direction) * normal);
-
-
 						bitangent = glm::normalize(glm::cross(normal, tangent));
 
 						glm::dvec3 worldDir = glm::normalize(normal * z + tangent * x + bitangent * y);
@@ -127,7 +131,9 @@
 				}
 			}
 			Ray* rayPath = previousRay;
-			rayPath->radiance = calculateDirectIllumination(rayPath);
+			if (rayPath->hit_surface->surfaceID != 0) {
+				rayPath->radiance = calculateDirectIllumination(rayPath);
+			}
 			while (rayPath->previous_ray != nullptr) {
 				if (rayPath->previous_ray->hit_surface->surfaceID == 1) {
 					rayPath->previous_ray->radiance = rayPath->radiance;
@@ -136,48 +142,59 @@
 				else {
 					rayPath->previous_ray->radiance = glm::dvec3(rayPath->previous_ray->hit_surface->color.r * rayPath->radiance.r,
 						rayPath->previous_ray->hit_surface->color.g * rayPath->radiance.g,
-						rayPath->previous_ray->hit_surface->color.b * rayPath->radiance.b) +
-						calculateDirectIllumination(rayPath->previous_ray);
+						rayPath->previous_ray->hit_surface->color.b * rayPath->radiance.b);
+					if (rayPath->hit_surface->surfaceID != 0) {
+						rayPath->previous_ray->radiance += calculateDirectIllumination(rayPath->previous_ray);
+					}
+						
 					rayPath = rayPath->previous_ray;
 				}
 			}
 			
 		}
 		glm::dvec3 calculateDirectIllumination(Ray* ray) {
-			glm::dvec3 e1 = light->verticies[1] - light->verticies[0];
-			glm::dvec3 e2 = light->verticies[3] - light->verticies[0];
-
 			glm::dvec3 radiance(0.0, 0.0, 0.0);
 			int N = 15;
 			glm::dvec3 surfaceColor = ray->hit_surface->color;
-
-			for (size_t n = 0; n < N; n++)
+			for (Polygon* light : lights)
 			{
-				double s = (double)rand() / RAND_MAX;
-				double t = (double)rand() / RAND_MAX;
 
-				glm::dvec3 y = glm::dvec3(light->verticies[0]) + s * e1 + t * e2;
-				glm::dvec3 di = y - glm::dvec3(ray->end_point);
+				glm::dvec3 e1 = light->verticies[1] - light->verticies[0];
+				glm::dvec3 e2 = light->verticies[3] - light->verticies[0];
 
-				double cosx = glm::dot(ray->hit_surface->normal, glm::normalize(di));
-				double cosy = glm::dot(-light->normal, glm::normalize(di));
+				
+				
+				
 
-				// Make sure that surfaces facing away from the lightsource dont give negative values, these values give wrong result
-				cosx = std::max(0.0, cosx);
-				cosy = std::max(0.0, cosy);
+				for (size_t n = 0; n < N; n++)
+				{
+					double s = generateRandomValue();
+					double t = generateRandomValue();
 
-				const double epsilon = 0;//1e-4
-				if (!isInShadow(ray->end_point + epsilon * ray->hit_surface->normal, y, ray->hit_surface)) {
-					double scalar_radiance = (cosx * cosy) / (glm::length(di) * glm::length(di));
-					radiance += scalar_radiance;
+					glm::dvec3 y = glm::dvec3(light->verticies[0]) + s * e1 + t * e2;
+					glm::dvec3 di = y - glm::dvec3(ray->end_point);
+
+					double cosx = glm::dot(ray->hit_surface->normal, glm::normalize(di));
+					double cosy = glm::dot(-light->normal, glm::normalize(di));
+
+					// Make sure that surfaces facing away from the lightsource dont give negative values, these values give wrong result
+					cosx = std::max(0.0, cosx);
+					cosy = std::max(0.0, cosy);
+
+					const double epsilon = 1e-4;//1e-4
+					if (!isInShadow(ray->end_point + epsilon * ray->hit_surface->normal, y, ray->hit_surface)) {
+						double scalar_radiance = (cosx * cosy) / (glm::length(di) * glm::length(di));
+						radiance += scalar_radiance;
+					}
+
 				}
-
 			}
+			
 
-			return radiance *= surfaceColor * 16.0 / (M_PI * N);
+			return radiance *= 16.0 / (M_PI * N); //surfaceColor *
 		}
 		bool isInShadow(const glm::dvec3& point, const glm::dvec3& lightPos, const Polygon* originSurface) {
-			Ray shadowRay(point, glm::normalize(lightPos - point), glm::dvec3(0,0,0));
+			Ray* shadowRay = new Ray(point, glm::normalize(lightPos - point), glm::dvec3(0,0,0));
 
 			for (Polygon* obj : sceneObjects) {
 				if (obj == originSurface)
@@ -185,7 +202,7 @@
 					continue;
 				}
 
-				if (obj->surfaceIntersectionTest(shadowRay).first != nullptr) {
+				if (obj->surfaceIntersectionTest(*shadowRay).first != nullptr) {
 					return true;  // Something is blocking the light
 				}
 			}
@@ -211,23 +228,17 @@
 			std::vector<std::vector<glm::dvec3>> frameBuffer;
 			
 			//Create image-matrix from raytrace
-			int samples = 100;
+
+			int samples = 400;
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
 				std::vector<glm::dvec3> row;
 				for (size_t y = 0; y < widthPixels; y++) {
 					glm::dvec3 finalCol (0.0, 0.0, 0.0); 
-					
-
-					std::random_device rd;   // Obtain a random seed
-					std::mt19937 gen(rd());  // Standard mersenne_twister_engine seeded with rd()
-					std::uniform_real_distribution<> dis(0.0, 1.0);
 
 					for (size_t N = 0; N < samples; N++) {
-						
-
-						double u_offset = dis(gen);
-						double v_offset = dis(gen);
+						double u_offset = generateRandomValue();
+						double v_offset = generateRandomValue();
 
 						double u = ((y + u_offset) / widthPixels) * imagePlaneWidth - imagePlaneWidth / 2;
 						double v = (1.0 - (z + v_offset) / heightPixels) * imagePlaneHeight - imagePlaneHeight / 2;
