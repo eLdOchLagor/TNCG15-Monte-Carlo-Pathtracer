@@ -24,24 +24,18 @@ public:
 			double t1 = (-c2 + sqrt(arg)) / (2.0 * c1);
 			double t2 = (-c2 - sqrt(arg)) / (2.0 * c1);
 			double t = t1 < t2 ? t1 : t2;
-			//double t = (t1 >= 0) && t1 < t2 ? t1 : (t2 >= 0) ? t2 : -1.0;
-			//if (t < 0) return nullptr;
 			
-			normal = glm::normalize(r.start_point + r.direction * t - center);
+			glm::dvec3 end_point = r.start_point + r.direction * t;
+			normal = glm::normalize(end_point - center);
+
+			// Ensure normal is facing towards the ray, to work for refractions inside object
+			if (glm::dot(r.direction, normal) > 0) {
+				normal = -normal;  // Flip the normal
+			}
 
 			//r.radiance = color;
 			return t;
 		}
-		/*else if (arg == 0) {
-			double t1 = -c2 / (2.0 * c1);
-			double t = t1 > 0.0 ? t1 : -1.0;
-			if (t < 0) return nullptr;
-			r.end_point = r.start_point + r.direction * t;
-			normal = glm::normalize(r.end_point - center);
-
-			r.radiance = color;
-			return this;
-		}*/
 		
 		return -1.0;
 	}

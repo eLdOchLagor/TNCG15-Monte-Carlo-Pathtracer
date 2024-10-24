@@ -119,8 +119,43 @@
 				if (previousRay->hit_surface->surfaceID == 1) {
 					//std::cout << "prickade en mirror";
 					if (previousRay->hit_surface->reflectance != 1) { // If transparent object
+
+						if (previousRay->currentRefractiveMedium != 1) // If in a object other than air
+						{
+							if (1/1.5 * sin(glm::dot(previousRay->direction, previousRay->hit_surface->normal)) < 1) // Reflect
+							{
+								previousRay = perfectReflection(previousRay);
+								previousRay->currentRefractiveMedium = 1.5;
+							}
+							else // Perform russian roulette to determine whether to reflect or refract out of the object
+							{
+								double randomValue = generateRandomValue();
+
+								if (randomValue < previousRay->hit_surface->reflectance) { // Reflect
+									previousRay = perfectReflection(previousRay);
+									previousRay->currentRefractiveMedium = 1.5;
+								}
+								else // Refract out of the object
+								{
+									double R = previousRay->currentRefractiveMedium == 1 ? 1 / 1.5 : 1.5;
+									glm::dvec3 d_refr = R * previousRay->direction + previousRay->hit_surface->normal * (-R * glm::dot(previousRay->hit_surface->normal, previousRay->direction)) -
+										sqrt(1 - R * R * (1 - glm::dot(previousRay->hit_surface->normal, previousRay->direction) * glm::dot(previousRay->hit_surface->normal, previousRay->direction)));
+									glm::dvec3 startPoint = previousRay->end_point;
+									glm::dvec3 importance = previousRay->radiance;
+									Ray* newRay = new Ray(startPoint, d_refr, importance);
+									newRay->currentRefractiveMedium = 1;
+									newRay->depth++;
+									previousRay->next_ray = newRay;
+									//tempRay = previousRay->next_ray;
+									newRay->previous_ray = previousRay;
+									previousRay = newRay;
+								}
+							}
+						}
+
 						double randomValue = generateRandomValue();
-						if (randomValue < previousRay->hit_surface->reflectance) {
+
+						if (randomValue < previousRay->hit_surface->reflectance) { // Reflect
 							previousRay = perfectReflection(previousRay);
 						}
 						else { // If russian roulette determines to refract
@@ -175,7 +210,7 @@
 				rayPath->radiance = calculateDirectIllumination(rayPath);
 			}
 			while (rayPath->previous_ray != nullptr) {
-				if (rayPath->previous_ray->hit_surface->surfaceID == 1) {
+				if (rayPath->previous_ray->hit_surface->surfaceID == 1) { // Perfect mirror
 					rayPath->previous_ray->radiance = rayPath->radiance;
 					rayPath = rayPath->previous_ray;
 				}
@@ -255,7 +290,7 @@
 			
 			//Create image-matrix from raytrace
 
-			int samples = 50;
+			int samples = 100;
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
 				std::vector<glm::dvec3> row;
