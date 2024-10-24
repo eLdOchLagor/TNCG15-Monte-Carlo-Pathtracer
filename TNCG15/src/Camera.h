@@ -54,6 +54,42 @@
 			return dis(rd);
 		}
 
+		Ray* perfectReflection(Ray* r) {
+			glm::dvec3 d_o = glm::normalize(r->direction) - 2 * glm::dot(glm::normalize(r->direction), r->hit_surface->normal) * r->hit_surface->normal;
+			glm::dvec3 startPoint = r->end_point;
+			glm::dvec3 importance = r->radiance;
+			Ray* newRay = new Ray(startPoint, d_o, importance);
+			newRay->depth++;
+			r->next_ray = newRay;
+			//tempRay = previousRay->next_ray;
+			newRay->previous_ray = r;
+			return newRay;
+		}
+
+		Ray* diffuseReflection(Ray* r, double& randAz, double& randInc) {
+			double x = cos(randAz) * sin(randInc);
+			double y = sin(randAz) * sin(randInc);
+			double z = cos(randInc);
+			glm::dvec3 tangent, bitangent;
+			glm::dvec3 normal = r->hit_surface->normal;
+
+			tangent = glm::normalize(-r->direction + glm::dot(normal, r->direction) * normal);
+			bitangent = glm::normalize(glm::cross(normal, tangent));
+
+			glm::dvec3 worldDir = glm::normalize(normal * z + tangent * x + bitangent * y);
+
+			glm::dvec3 startPoint = r->end_point;
+			glm::dvec3 importance = r->radiance;
+			Ray* newRay = new Ray(startPoint, worldDir, importance);
+			newRay->depth++;
+			r->next_ray = newRay;
+			//tempRay = previousRay->next_ray;
+			newRay->previous_ray = r;
+			i++;
+
+			return newRay;
+		}
+
 		void shootNextRay(Ray& firstRay) {
 			//std::cout << i << "\n";
 			Ray* previousRay = &firstRay;
@@ -82,20 +118,13 @@
 
 				if (previousRay->hit_surface->surfaceID == 1) {
 					//std::cout << "prickade en mirror";
-					if (previousRay->hit_surface->reflectance != 1) {
+					if (previousRay->hit_surface->reflectance != 1) { // If transparent object
 						double randomValue = generateRandomValue();
 						if (randomValue < previousRay->hit_surface->reflectance) {
-							glm::dvec3 d_o = glm::normalize(previousRay->direction) - 2 * glm::dot(glm::normalize(previousRay->direction), previousRay->hit_surface->normal) * previousRay->hit_surface->normal;
-							glm::dvec3 startPoint = previousRay->end_point;
-							glm::dvec3 importance = previousRay->radiance;
-							Ray* newRay = new Ray(startPoint, d_o, importance);
-							newRay->depth++;
-							previousRay->next_ray = newRay;
-							//tempRay = previousRay->next_ray;
-							newRay->previous_ray = previousRay;
-							previousRay = newRay;
+							previousRay = perfectReflection(previousRay);
 						}
-						else {
+						else { // If russian roulette determines to refract
+
 							double R = previousRay->currentRefractiveMedium == 1 ? 1 / 1.5 : 1.5;
 							glm::dvec3 d_refr = R * previousRay->direction + previousRay->hit_surface->normal * (-R * glm::dot(previousRay->hit_surface->normal, previousRay->direction)) -
 								sqrt(1 - R * R * (1 - glm::dot(previousRay->hit_surface->normal, previousRay->direction) * glm::dot(previousRay->hit_surface->normal, previousRay->direction)));
@@ -109,18 +138,8 @@
 							previousRay = newRay;
 						}
 					}
-					else {
-						glm::dvec3 d_o = glm::normalize(previousRay->direction) - 2 * glm::dot(glm::normalize(previousRay->direction), previousRay->hit_surface->normal) * previousRay->hit_surface->normal;
-						glm::dvec3 startPoint = previousRay->end_point;
-						glm::dvec3 importance = previousRay->radiance;
-						Ray* newRay = new Ray(startPoint, d_o, importance);
-						newRay->depth++;
-						previousRay->next_ray = newRay;
-						//tempRay = previousRay->next_ray;
-						newRay->previous_ray = previousRay;
-						previousRay = newRay;
-						//shootNextRay(newRay);
-						//prevRay.radiance = newRay.radiance;
+					else { // If perfect mirror
+						previousRay = perfectReflection(previousRay);
 					}
 					
 				}
@@ -129,39 +148,19 @@
 
 					double randomValue1 = generateRandomValue();
 					double randomValue2 = generateRandomValue();
-					double randAzimuth = acos(sqrt(1 - randomValue1));
-					double randPhi = 2 * M_PI * randomValue2;
-					double rr = randPhi / Roh;
+
+					double randInclination = acos(sqrt(1 - randomValue1));
+					double randAzimuth = 2 * M_PI * randomValue2;
+					double rr = randAzimuth / Roh;
+
 					if (rr <= 2 * M_PI) {
-
-						double x = cos(randPhi) * sin(randAzimuth);
-						double y = sin(randPhi) * sin(randAzimuth);
-						double z = cos(randAzimuth);
-						glm::dvec3 tangent, bitangent;
-						glm::dvec3 normal = previousRay->hit_surface->normal;
-
-						tangent = glm::normalize(-previousRay->direction + glm::dot(normal, previousRay->direction) * normal);
-						bitangent = glm::normalize(glm::cross(normal, tangent));
-
-						glm::dvec3 worldDir = glm::normalize(normal * z + tangent * x + bitangent * y);
-
-						glm::dvec3 startPoint = previousRay->end_point;
-						glm::dvec3 importance = previousRay->radiance;
-						Ray* newRay = new Ray(startPoint, worldDir, importance);
-						newRay->depth++;
-						previousRay->next_ray = newRay;
-						//tempRay = previousRay->next_ray;
-						newRay->previous_ray = previousRay;
-						i++;
-						previousRay = newRay;
+						previousRay = diffuseReflection(previousRay, randAzimuth, randInclination);
 					}
 					//If we hit a diffuse surface and russian roulette determines that the ray is killed then thoust is the final if-statement determening 
 					//the destiny of the radiance.
 					else {
 						break;
-						
 					}
-					//previousRay->radiance = calculateDirectIllumination(previousRay);	
 				}
 				else {
 
@@ -169,6 +168,8 @@
 
 				}
 			}
+
+			// Traverse raypath from last ray to pixel
 			Ray* rayPath = previousRay;
 			if (rayPath->hit_surface->surfaceID != 0) {
 				rayPath->radiance = calculateDirectIllumination(rayPath);
@@ -191,31 +192,14 @@
 			
 		}
 
-		/*
-		Polygon* findClosestSurface(std::vector<std::pair<Polygon*,double>>& hitObj) {
-			std::pair<Polygon*,double> closestObj = std::pair(hitObj[0]);
-			for (std::pair<Polygon*, double >& obj : hitObj) {
-				if (obj.second < closestObj.second) {
-					closestObj = obj;
-				}
-			}
-			return closestObj.first;
-		}
-		*/
-
 		glm::dvec3 calculateDirectIllumination(Ray* ray) {
 			glm::dvec3 radiance(0.0, 0.0, 0.0);
 			double N = 15;
 			glm::dvec3 surfaceColor = ray->hit_surface->color;
 			for (Polygon* light : lights)
 			{
-
 				glm::dvec3 e1 = light->verticies[1] - light->verticies[0];
 				glm::dvec3 e2 = light->verticies[3] - light->verticies[0];
-
-				
-				
-				
 
 				for (size_t n = 0; n < N; n++)
 				{
@@ -264,21 +248,6 @@
 			delete shadowRay;
 			shadowRay = nullptr;
 			return false;  // Light is visible
-		}
-
-		glm::dvec3 calcColor(Ray& firstRay) {
-			Ray* currentRay = &firstRay;
-			glm::dvec3 color = currentRay->radiance;
-			while (currentRay != nullptr) {
-				if (currentRay->hit_surface->surfaceID == 0) {
-					currentRay = currentRay->next_ray;
-				}
-				else {
-					color = currentRay->radiance;
-					currentRay = currentRay->next_ray;
-				}
-			}
-			return color;
 		}
 
 		void render() {
