@@ -19,7 +19,7 @@ public:
 
 		double arg = c2 * c2 - 4.0 * c1 * c3;
 
-		if (arg > 0.0)
+		if (arg >= 0.0)
 		{
 			double t1 = (-c2 + sqrt(arg)) / (2.0 * c1);
 			double t2 = (-c2 - sqrt(arg)) / (2.0 * c1);
@@ -34,6 +34,7 @@ public:
 			}
 
 			//r.radiance = color;
+
 			return t;
 		}
 		

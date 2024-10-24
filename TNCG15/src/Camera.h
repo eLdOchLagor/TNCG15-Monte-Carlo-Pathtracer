@@ -59,7 +59,7 @@
 			glm::dvec3 startPoint = r->end_point;
 			glm::dvec3 importance = r->radiance;
 			Ray* newRay = new Ray(startPoint, d_o, importance);
-			newRay->depth++;
+			newRay->depth = r->depth+1;
 			r->next_ray = newRay;
 			//tempRay = previousRay->next_ray;
 			newRay->previous_ray = r;
@@ -81,7 +81,7 @@
 			glm::dvec3 startPoint = r->end_point;
 			glm::dvec3 importance = r->radiance;
 			Ray* newRay = new Ray(startPoint, worldDir, importance);
-			newRay->depth++;
+			newRay->depth = r->depth + 1;
 			r->next_ray = newRay;
 			//tempRay = previousRay->next_ray;
 			newRay->previous_ray = r;
@@ -93,23 +93,23 @@
 		void shootNextRay(Ray& firstRay) {
 			//std::cout << i << "\n";
 			Ray* previousRay = &firstRay;
-			while (previousRay->depth < 5) {
+			while (true) {//previousRay->depth < 5000 tog bort att vi dödar ray paths då det inte funkar med reflective/refractive ytor
 				double closestT = -1.0;
 				Polygon* closestSurface = nullptr;
 				
 				for (Polygon* obj : objects)
 				{
 					double t = obj->surfaceIntersectionTest(*previousRay);
-					if (t > 0.0 && (closestT < 0.0 || t < closestT)) {
+					if (t > 0 && (closestT < 0.0 || t < closestT)) {
 						closestT = t;
 						closestSurface = obj;
 					}
 
 				}
-
-				previousRay->hit_surface = closestSurface;
-				previousRay->end_point = previousRay->start_point + closestT * previousRay->direction;
 				
+				previousRay->hit_surface = closestSurface;
+				previousRay->end_point = previousRay->start_point + closestT * previousRay->direction + 0.01 * previousRay->hit_surface->normal;
+				//std::cout << closestT << "\n";
 
 				if (previousRay->hit_surface->surfaceID == 0) {
 					previousRay->radiance = glm::dvec3(1.0, 1.0, 1.0);
@@ -124,6 +124,7 @@
 						{
 							if (1/1.5 * sin(glm::dot(previousRay->direction, previousRay->hit_surface->normal)) < 1) // Reflect
 							{
+								
 								previousRay = perfectReflection(previousRay);
 								previousRay->currentRefractiveMedium = 1.5;
 							}
@@ -132,11 +133,13 @@
 								double randomValue = generateRandomValue();
 
 								if (randomValue < previousRay->hit_surface->reflectance) { // Reflect
+									
 									previousRay = perfectReflection(previousRay);
 									previousRay->currentRefractiveMedium = 1.5;
 								}
 								else // Refract out of the object
 								{
+									
 									double R = previousRay->currentRefractiveMedium == 1 ? 1 / 1.5 : 1.5;
 									glm::dvec3 d_refr = R * previousRay->direction + previousRay->hit_surface->normal * (-R * glm::dot(previousRay->hit_surface->normal, previousRay->direction)) -
 										sqrt(1 - R * R * (1 - glm::dot(previousRay->hit_surface->normal, previousRay->direction) * glm::dot(previousRay->hit_surface->normal, previousRay->direction)));
@@ -144,7 +147,7 @@
 									glm::dvec3 importance = previousRay->radiance;
 									Ray* newRay = new Ray(startPoint, d_refr, importance);
 									newRay->currentRefractiveMedium = 1;
-									newRay->depth++;
+									newRay->depth = previousRay->depth + 1;
 									previousRay->next_ray = newRay;
 									//tempRay = previousRay->next_ray;
 									newRay->previous_ray = previousRay;
@@ -156,24 +159,27 @@
 						double randomValue = generateRandomValue();
 
 						if (randomValue < previousRay->hit_surface->reflectance) { // Reflect
+							
 							previousRay = perfectReflection(previousRay);
 						}
 						else { // If russian roulette determines to refract
-
+							
 							double R = previousRay->currentRefractiveMedium == 1 ? 1 / 1.5 : 1.5;
 							glm::dvec3 d_refr = R * previousRay->direction + previousRay->hit_surface->normal * (-R * glm::dot(previousRay->hit_surface->normal, previousRay->direction)) -
 								sqrt(1 - R * R * (1 - glm::dot(previousRay->hit_surface->normal, previousRay->direction) * glm::dot(previousRay->hit_surface->normal, previousRay->direction)));
 							glm::dvec3 startPoint = previousRay->end_point;
 							glm::dvec3 importance = previousRay->radiance;
 							Ray* newRay = new Ray(startPoint, d_refr, importance);
-							newRay->depth++;
+							newRay->depth = previousRay->depth + 1;
 							previousRay->next_ray = newRay;
 							//tempRay = previousRay->next_ray;
 							newRay->previous_ray = previousRay;
 							previousRay = newRay;
+							//std::cout << newRay->start_point.r << " " << newRay->start_point.g << " " << newRay->start_point.b << "\n";
 						}
 					}
 					else { // If perfect mirror
+
 						previousRay = perfectReflection(previousRay);
 					}
 					
@@ -290,7 +296,7 @@
 			
 			//Create image-matrix from raytrace
 
-			int samples = 100;
+			int samples = 50;
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
 				std::vector<glm::dvec3> row;
