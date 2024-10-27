@@ -140,10 +140,8 @@
 					}
 				}
 				else if (previousRay->hit_surface->surfaceID == 3) // If ray hits a transparent object
-				{
-					
-						
-					double R0 = (1 - 1.5) / (1 + 1.5) * (1 - 1.5) / (1 + 1.5);
+				{	
+					double R0 = (1 - 1.5) / (1 + 1.5) * (1 - 1.5) / (1 + 1.5); // Works both ways with n1, n2
 					double R = R0 + (1 - R0) * pow((1 - cos(glm::dot(previousRay->direction, previousRay->hit_surface->normal))), 5); // Chance to reflect, derived from Schlick's formula
 
 					if (previousRay->currentRefractiveMedium == 1.0) // Hitting object on the outside
@@ -171,13 +169,15 @@
 					else if (previousRay->currentRefractiveMedium == 1.5) // Inside glass object
 					{
 						//std::cout << "Inside object";
-						if (1 / 1.5 * sin(glm::dot(previousRay->direction, previousRay->hit_surface->normal)) < 1) // If total internal reflection, reflect
+						if (1.5 / 1 * sin(glm::dot(previousRay->direction, previousRay->hit_surface->normal)) < 1) // If total internal reflection, reflect
 						{
+
 							previousRay = perfectReflection(previousRay);
 							previousRay->currentRefractiveMedium = 1.5;
 						}
 						else // Perform russian roulette to determine whether to reflect or refract out of the object
 						{
+							std::cout << "rrr";
 							if (generateRandomValue() < R) { // Reflect
 
 								previousRay = perfectReflection(previousRay);
@@ -297,7 +297,7 @@
 			
 			//Create image-matrix from raytrace
 
-			int samples = 100;
+			int samples = 3;
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
 				std::vector<glm::dvec3> row;
