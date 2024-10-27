@@ -112,96 +112,15 @@
 				previousRay->end_point = previousRay->start_point + closestT * previousRay->direction;
 				//std::cout << closestT << "\n";
 
-				if (previousRay->hit_surface->surfaceID == 0) {
+				if (previousRay->hit_surface->surfaceID == 0) { // If ray hits lightsource
 					previousRay->radiance = glm::dvec3(1.0, 1.0, 1.0);
 					break;
 				}
 
-				if (previousRay->hit_surface->surfaceID == 1) {
-					//std::cout << "prickade en mirror";
-					if (previousRay->hit_surface->reflectance != 1) { // If transparent object
-
-						double R0 = 0.0;
-						if (previousRay->currentRefractiveMedium == 1)
-						{
-							R0 = (1 - 1.5) / (1 + 1.5) * (1 - 1.5) / (1 + 1.5);
-						}
-						else
-						{
-							R0 = (1.5 - 1) / (1.5 + 1) * (1.5 - 1) / (1.5 + 1);
-						}
-
-						double R = R0 + (1 - R0) * pow((1 - cos(glm::dot(previousRay->direction, previousRay->hit_surface->normal))), 5);
-
-						if (previousRay->currentRefractiveMedium != 1) // If in a object other than air
-						{
-							if (1/1.5 * sin(glm::dot(previousRay->direction, previousRay->hit_surface->normal)) < 1) // Reflect
-							{
-								
-								previousRay = perfectReflection(previousRay);
-								previousRay->radiance *= R;
-								previousRay->currentRefractiveMedium = 1.5;
-							}
-							else // Perform russian roulette to determine whether to reflect or refract out of the object
-							{
-								double randomValue = generateRandomValue();
-
-								if (randomValue < previousRay->hit_surface->reflectance) { // Reflect
-									
-									previousRay = perfectReflection(previousRay);
-									previousRay->radiance *= R;
-									previousRay->currentRefractiveMedium = 1.5;
-								}
-								else // Refract out of the object
-								{
-									
-									double R1 = previousRay->currentRefractiveMedium == 1 ? 1 / 1.5 : 1.5;
-									glm::dvec3 d_refr = R1 * previousRay->direction + previousRay->hit_surface->normal * (-R1 * glm::dot(previousRay->hit_surface->normal, previousRay->direction)) -
-										sqrt(1 - R1 * R1 * (1 - glm::dot(previousRay->hit_surface->normal, previousRay->direction) * glm::dot(previousRay->hit_surface->normal, previousRay->direction)));
-									glm::dvec3 startPoint = previousRay->end_point;
-
-									glm::dvec3 importance = previousRay->radiance * (1- R1);
-									Ray* newRay = new Ray(startPoint, d_refr, importance);
-									newRay->currentRefractiveMedium = 1;
-									newRay->depth = previousRay->depth + 1;
-									previousRay->next_ray = newRay;
-									//tempRay = previousRay->next_ray;
-									newRay->previous_ray = previousRay;
-									previousRay = newRay;
-								}
-							}
-						}
-
-						double randomValue = generateRandomValue();
-
-						if (randomValue < previousRay->hit_surface->reflectance) { // Reflect
-							
-							previousRay = perfectReflection(previousRay);
-							previousRay->radiance *= R;
-						}
-						else { // If russian roulette determines to refract
-							
-							//double R = previousRay->currentRefractiveMedium == 1 ? 1 / 1.5 : 1.5;
-							glm::dvec3 d_refr = R * previousRay->direction + previousRay->hit_surface->normal * (-R * glm::dot(previousRay->hit_surface->normal, previousRay->direction)) -
-								sqrt(1 - R * R * (1 - glm::dot(previousRay->hit_surface->normal, previousRay->direction) * glm::dot(previousRay->hit_surface->normal, previousRay->direction)));
-							glm::dvec3 startPoint = previousRay->end_point;
-							glm::dvec3 importance = previousRay->radiance * (1-R);
-							Ray* newRay = new Ray(startPoint, d_refr, importance);
-							newRay->depth = previousRay->depth + 1;
-							previousRay->next_ray = newRay;
-							//tempRay = previousRay->next_ray;
-							newRay->previous_ray = previousRay;
-							previousRay = newRay;
-							//std::cout << newRay->start_point.r << " " << newRay->start_point.g << " " << newRay->start_point.b << "\n";
-						}
-					}
-					else { // If perfect mirror
-
-						previousRay = perfectReflection(previousRay);
-					}
-					
+				if (previousRay->hit_surface->surfaceID == 1) { // If ray hits a mirror
+					previousRay = perfectReflection(previousRay);
 				}
-				else if (previousRay->hit_surface->surfaceID == 2) {
+				else if (previousRay->hit_surface->surfaceID == 2) { // If ray hits a diffuse reflector
 					double Roh = previousRay->hit_surface->reflectance;
 
 					double randomValue1 = generateRandomValue();
@@ -220,6 +139,67 @@
 						break;
 					}
 				}
+				else if (previousRay->hit_surface->surfaceID == 3) // If ray hits a transparent object
+				{
+					
+						
+					double R0 = (1 - 1.5) / (1 + 1.5) * (1 - 1.5) / (1 + 1.5);
+					double R = R0 + (1 - R0) * pow((1 - cos(glm::dot(previousRay->direction, previousRay->hit_surface->normal))), 5); // Chance to reflect, derived from Schlick's formula
+
+					if (previousRay->currentRefractiveMedium = 1) // Hitting object on the outside
+					{
+						if (generateRandomValue() < R) // Reflect
+						{
+							previousRay = perfectReflection(previousRay);
+						}
+						else // Refract into object
+						{
+							double R1 = previousRay->currentRefractiveMedium == 1 ? 1 / 1.5 : 1.5;
+							glm::dvec3 d_refr = R1 * previousRay->direction + previousRay->hit_surface->normal * (-R1 * glm::dot(previousRay->hit_surface->normal, previousRay->direction)) -
+								sqrt(1 - R1 * R1 * (1 - glm::dot(previousRay->hit_surface->normal, previousRay->direction) * glm::dot(previousRay->hit_surface->normal, previousRay->direction)));
+
+							glm::dvec3 startPoint = previousRay->end_point;
+							glm::dvec3 importance = previousRay->radiance;
+							Ray* newRay = new Ray(startPoint, d_refr, importance);
+							newRay->currentRefractiveMedium = 1.5;
+							newRay->depth = previousRay->depth + 1;
+							previousRay->next_ray = newRay;
+							newRay->previous_ray = previousRay;
+							previousRay = newRay;
+						}
+					}
+					else if (previousRay->currentRefractiveMedium = 1.5) // Inside glass object
+					{
+						if (1 / 1.5 * sin(glm::dot(previousRay->direction, previousRay->hit_surface->normal)) < 1) // If total internal reflection, reflect
+						{
+							previousRay = perfectReflection(previousRay);
+							previousRay->currentRefractiveMedium = 1.5;
+						}
+						else // Perform russian roulette to determine whether to reflect or refract out of the object
+						{
+							if (generateRandomValue() < R) { // Reflect
+
+								previousRay = perfectReflection(previousRay);
+								previousRay->currentRefractiveMedium = 1.5;
+							}
+							else // Refract out of the object
+							{
+								double R1 = previousRay->currentRefractiveMedium == 1 ? 1 / 1.5 : 1.5;
+								glm::dvec3 d_refr = R1 * previousRay->direction + previousRay->hit_surface->normal * (-R1 * glm::dot(previousRay->hit_surface->normal, previousRay->direction)) -
+									sqrt(1 - R1 * R1 * (1 - glm::dot(previousRay->hit_surface->normal, previousRay->direction) * glm::dot(previousRay->hit_surface->normal, previousRay->direction)));
+
+								glm::dvec3 startPoint = previousRay->end_point;
+								glm::dvec3 importance = previousRay->radiance;
+								Ray* newRay = new Ray(startPoint, d_refr, importance);
+								newRay->currentRefractiveMedium = 1;
+								newRay->depth = previousRay->depth + 1;
+								previousRay->next_ray = newRay;
+								newRay->previous_ray = previousRay;
+								previousRay = newRay;
+							}
+						}
+					}
+				}
 				else {
 
 
@@ -235,31 +215,18 @@
 			
 			
 			while (rayPath->previous_ray != nullptr) {
-				if (rayPath->previous_ray->hit_surface->surfaceID == 1) { // Mirror or transparent object
-					if (rayPath->previous_ray->hit_surface->reflectance == 1.0) // If mirror
-					{
-						rayPath->previous_ray->radiance = rayPath->radiance;
-						rayPath = rayPath->previous_ray;
-					}
-					else // If transparent object
-					{
-						glm::dvec3 ratio = rayPath->radiance / rayPath->previous_ray->radiance;
-						rayPath->previous_ray->radiance = glm::dvec3(ratio.r * rayPath->radiance.r,
-							ratio.g * rayPath->radiance.g,
-							ratio.b * rayPath->radiance.b);
-						//rayPath->previous_ray->radiance = rayPath->radiance;
-
-						rayPath = rayPath->previous_ray;
-					}
+				if (rayPath->previous_ray->hit_surface->surfaceID == 1 || rayPath->previous_ray->hit_surface->surfaceID == 3) { // Mirror or transparent object
+					
+					rayPath->previous_ray->radiance = rayPath->radiance;
+					rayPath = rayPath->previous_ray;
 					
 				}
-				else {
+				else { // If diffuse object
 					rayPath->previous_ray->radiance = glm::dvec3(rayPath->previous_ray->hit_surface->color.r * rayPath->radiance.r,
 						rayPath->previous_ray->hit_surface->color.g * rayPath->radiance.g,
 						rayPath->previous_ray->hit_surface->color.b * rayPath->radiance.b) +
 						calculateDirectIllumination(rayPath->previous_ray);
 					
-						
 					rayPath = rayPath->previous_ray;
 				}
 			}
@@ -329,7 +296,7 @@
 			
 			//Create image-matrix from raytrace
 
-			int samples = 50;
+			int samples = 100;
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
 				std::vector<glm::dvec3> row;
