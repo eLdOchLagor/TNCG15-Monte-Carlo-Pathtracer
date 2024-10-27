@@ -146,7 +146,7 @@
 					double R0 = (1 - 1.5) / (1 + 1.5) * (1 - 1.5) / (1 + 1.5);
 					double R = R0 + (1 - R0) * pow((1 - cos(glm::dot(previousRay->direction, previousRay->hit_surface->normal))), 5); // Chance to reflect, derived from Schlick's formula
 
-					if (previousRay->currentRefractiveMedium = 1) // Hitting object on the outside
+					if (previousRay->currentRefractiveMedium == 1.0) // Hitting object on the outside
 					{
 						if (generateRandomValue() < R) // Reflect
 						{
@@ -158,7 +158,7 @@
 							glm::dvec3 d_refr = R1 * previousRay->direction + previousRay->hit_surface->normal * (-R1 * glm::dot(previousRay->hit_surface->normal, previousRay->direction)) -
 								sqrt(1 - R1 * R1 * (1 - glm::dot(previousRay->hit_surface->normal, previousRay->direction) * glm::dot(previousRay->hit_surface->normal, previousRay->direction)));
 
-							glm::dvec3 startPoint = previousRay->end_point;
+							glm::dvec3 startPoint = previousRay->end_point + d_refr * epsilon;
 							glm::dvec3 importance = previousRay->radiance;
 							Ray* newRay = new Ray(startPoint, d_refr, importance);
 							newRay->currentRefractiveMedium = 1.5;
@@ -168,8 +168,9 @@
 							previousRay = newRay;
 						}
 					}
-					else if (previousRay->currentRefractiveMedium = 1.5) // Inside glass object
+					else if (previousRay->currentRefractiveMedium == 1.5) // Inside glass object
 					{
+						//std::cout << "Inside object";
 						if (1 / 1.5 * sin(glm::dot(previousRay->direction, previousRay->hit_surface->normal)) < 1) // If total internal reflection, reflect
 						{
 							previousRay = perfectReflection(previousRay);
@@ -188,7 +189,7 @@
 								glm::dvec3 d_refr = R1 * previousRay->direction + previousRay->hit_surface->normal * (-R1 * glm::dot(previousRay->hit_surface->normal, previousRay->direction)) -
 									sqrt(1 - R1 * R1 * (1 - glm::dot(previousRay->hit_surface->normal, previousRay->direction) * glm::dot(previousRay->hit_surface->normal, previousRay->direction)));
 
-								glm::dvec3 startPoint = previousRay->end_point;
+								glm::dvec3 startPoint = previousRay->end_point + d_refr * epsilon;
 								glm::dvec3 importance = previousRay->radiance;
 								Ray* newRay = new Ray(startPoint, d_refr, importance);
 								newRay->currentRefractiveMedium = 1;

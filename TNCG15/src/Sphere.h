@@ -23,7 +23,17 @@ public:
 		{
 			double t1 = (-c2 + sqrt(arg)) / (2.0 * c1);
 			double t2 = (-c2 - sqrt(arg)) / (2.0 * c1);
-			double t = t1 < t2 ? t1 : t2;
+			
+			double t = -1.0;
+			if (t1 > 0 && t2 > 0) {
+				t = std::min(t1, t2);
+			}
+			else if (t1 > 0) {
+				t = t1;
+			}
+			else if (t2 > 0) {
+				t = t2;
+			}
 			
 			glm::dvec3 end_point = r.start_point + r.direction * t;
 			normal = glm::normalize(end_point - center);
