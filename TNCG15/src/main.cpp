@@ -25,7 +25,7 @@ int main()
 	std::vector<Polygon*> sceneObjects;
 
 	//Sphere* test = new Sphere(glm::dvec3(10, 0, 0), 1.0, glm::dvec3(0.2, 1.0, 0.2), 2, 0);
-	Sphere* sphere2 = new Sphere(glm::dvec3(10, 0, 3.5), 1.5, glm::dvec3(0.5, 0.2, 0.8), 3, 0.0); 
+	Sphere* sphere2 = new Sphere(glm::dvec3(10, 0, -3.5), 1.5, glm::dvec3(0.5, 0.2, 0.8), 3, 0.0); 
 	scene.push_back(sphere2);
 	sceneObjects.push_back(sphere2);
 
