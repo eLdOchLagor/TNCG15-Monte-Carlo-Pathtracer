@@ -10,7 +10,7 @@
 #include <glm/glm.hpp>
 #include "Ray.h"
 #include <fstream>
-
+#include <chrono>
 
 	class Camera
 	{
@@ -307,6 +307,7 @@
 			std::vector<std::vector<glm::dvec3>> frameBuffer;
 			
 			//Create image-matrix from raytrace
+			auto start = std::chrono::high_resolution_clock::now();
 
 			int samples = 50;
 			for (size_t z = 0; z < heightPixels; z++) {
@@ -337,6 +338,10 @@
 				}
 				frameBuffer.push_back(row);
 			}
+
+			auto end = std::chrono::high_resolution_clock::now();
+			std::chrono::duration<double> time_taken = end - start;
+			std::cout << "\nTime taken to render : " << time_taken.count() << " sec \n";
 
 			// Find largest double in all pixels to normalize with
 			double largest = std::numeric_limits<double>::lowest();
