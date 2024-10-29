@@ -13,8 +13,8 @@
 
 int main()
 {
-	const int imageWidth = 600;
-	const int imageHeight = 600;
+	const int imageWidth = 200;
+	const int imageHeight = 200;
 	const glm::dvec3 cam_pos(0, 0, 0);
 	const glm::dvec3 cam_up(0,0,1);
 	const glm::dvec3 cam_forward(1,0,0);
@@ -25,7 +25,7 @@ int main()
 	std::vector<Polygon*> sceneObjects;
 
 	//Sphere* test = new Sphere(glm::dvec3(10, 0, 0), 1.0, glm::dvec3(0.2, 1.0, 0.2), 2, 0);
-	Sphere* sphere2 = new Sphere(glm::dvec3(7, 2, 3), 1, glm::dvec3(0.5, 0.2, 0.8), 3, 0.0); 
+	Sphere* sphere2 = new Sphere(glm::dvec3(6, 2, -3.5), 1, glm::dvec3(0.5, 0.2, 0.8), 3, 0.0); 
 	scene.push_back(sphere2);
 	sceneObjects.push_back(sphere2);
 

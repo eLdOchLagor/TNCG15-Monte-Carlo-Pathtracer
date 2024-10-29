@@ -287,7 +287,7 @@
 			Ray* shadowRay = new Ray(point, glm::normalize(lightPos - point), glm::dvec3(0,0,0));
 
 			for (Polygon* obj : sceneObjects) {
-				if (obj == originSurface)
+				if (obj == originSurface || obj->surfaceID == 3) // If shadowray hits starting object or transparent object, Ignore
 				{
 					continue;
 				}
