@@ -11,7 +11,7 @@
 
 	class Rectangle : public Polygon{
 	public:
-
+		std::vector<Triangle*> triangles;
 		Rectangle(const glm::dvec3& point1, const glm::dvec3& point2, const glm::dvec3& point3, const glm::dvec3& point4,const glm::dvec3& col,const int& surfID, const double reflec, bool isB = false)   {
 			verticies.push_back(point1);
 			verticies.push_back(point2);
@@ -22,36 +22,33 @@
 			surfaceID = surfID;
 			reflectance = reflec;
 			isBoundry = isB;
+			constructTriangles();
+		}
+
+		void constructTriangles() {
+			Triangle* tri1 = new Triangle(verticies[0], verticies[1], verticies[2], color, surfaceID, reflectance, isBoundry);
+			Triangle* tri2 = new Triangle(verticies[0], verticies[2], verticies[3], color, surfaceID, reflectance, isBoundry);
+			
+			triangles.push_back(tri1);
+			triangles.push_back(tri2);
+
 		}
 
 		double surfaceIntersectionTest(Ray& r) override {
 
-			glm::dvec3 d = glm::normalize(r.direction);
-			glm::dvec3 s = r.start_point;
-			
-			// If negative, then the surface is visible for the ray
-			if (glm::dot(d, normal) < 0.0)
-			{
-				double t = glm::dot(verticies[0] - s, normal / (glm::dot(d, normal)));
-				glm::dvec3 intersectionPoint = s + t * d;
-				
-				glm::dvec3 c1 = verticies[1] - verticies[0];
-				glm::dvec3 c2 = verticies[3] - verticies[0];
-
-				double a = glm::dot(intersectionPoint - verticies[0], c1) / glm::dot(c1, c1);
-				double b = glm::dot(intersectionPoint - verticies[0], c2) / glm::dot(c2, c2);
-
-				// If intersectionPoint is a valid point on the surface
-				if (0.0 <= a && a <= 1.0 && 0.0 <= b && b <= 1.0)
-				{
-					//r.hit_surface = this;
-					//r.end_point = intersectionPoint;
-					//r.radiance = color;
-					return t;
-				}
-				
+			std::vector<double> intersectedSurface;
+			for (Triangle* temp : triangles) {
+				intersectedSurface.push_back(temp->surfaceIntersectionTest(r));
 			}
-			return -1.0;
+
+			double closestT = -1;
+			for (double t : intersectedSurface) {
+				if ((closestT < 0.0 || t < closestT) && t > 1e-6) {
+					closestT = t;
+				}
+			}
+
+			return closestT;
 		}
 
 	private:

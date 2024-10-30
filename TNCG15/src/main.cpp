@@ -13,8 +13,8 @@
 
 int main()
 {
-	const int imageWidth = 200;
-	const int imageHeight = 200;
+	const int imageWidth = 800;
+	const int imageHeight = 800;
 	const glm::dvec3 cam_pos(0, 0, 0);
 	const glm::dvec3 cam_up(0,0,1);
 	const glm::dvec3 cam_forward(1,0,0);
@@ -37,18 +37,18 @@ int main()
 	scene.push_back(sphere3);
 	sceneObjects.push_back(sphere3);
 
-	Triangle* tetra1 = new Triangle(glm::dvec3(7, 2, -5), glm::dvec3(10, 2, -5), glm::dvec3(10, 0, -5), glm::dvec3(0.1, 1, 0.1), 2, 0.5);
-	Triangle* tetra2 = new Triangle(glm::dvec3(7, 2, -5), glm::dvec3(10, 2, -3), glm::dvec3(10, 2, -5), glm::dvec3(0.1, 1, 0.1), 2, 0.5);
-	Triangle* tetra3 = new Triangle(glm::dvec3(10, 2, -5), glm::dvec3(10, 2, -3), glm::dvec3(10, 0, -5), glm::dvec3(0.1, 1, 0.1), 2, 0.5);
-	Triangle* tetra4 = new Triangle(glm::dvec3(10, 2, -3), glm::dvec3(7, 2, -5), glm::dvec3(10, 0, -5), glm::dvec3(0.1, 1, 0.1), 2, 0.5);
-	scene.push_back(tetra1);
-	sceneObjects.push_back(tetra1);
-	scene.push_back(tetra2);
-	sceneObjects.push_back(tetra2);
-	scene.push_back(tetra3);
-	sceneObjects.push_back(tetra3);
-	scene.push_back(tetra4);
-	sceneObjects.push_back(tetra4);
+	//Triangle* tetra1 = new Triangle(glm::dvec3(7, 2, -5), glm::dvec3(10, 2, -5), glm::dvec3(10, 0, -5), glm::dvec3(0.1, 1, 0.1), 2, 0.5);
+	//Triangle* tetra2 = new Triangle(glm::dvec3(7, 2, -5), glm::dvec3(10, 2, -3), glm::dvec3(10, 2, -5), glm::dvec3(0.1, 1, 0.1), 2, 0.5);
+	//Triangle* tetra3 = new Triangle(glm::dvec3(10, 2, -5), glm::dvec3(10, 2, -3), glm::dvec3(10, 0, -5), glm::dvec3(0.1, 1, 0.1), 2, 0.5);
+	//Triangle* tetra4 = new Triangle(glm::dvec3(10, 2, -3), glm::dvec3(7, 2, -5), glm::dvec3(10, 0, -5), glm::dvec3(0.1, 1, 0.1), 2, 0.5);
+	//scene.push_back(tetra1);
+	//sceneObjects.push_back(tetra1);
+	//scene.push_back(tetra2);
+	//sceneObjects.push_back(tetra2);
+	//scene.push_back(tetra3);
+	//sceneObjects.push_back(tetra3);
+	//scene.push_back(tetra4);
+	//sceneObjects.push_back(tetra4);
 	
 	//Sphere* sphere1 = new Sphere(glm::dvec3(10, 0, 0), 2.0, glm::dvec3(0.2, 1.0, 0.2), 2, 0.5);
 	//scene.push_back(sphere1);
@@ -56,7 +56,9 @@ int main()
 	
 	//scene.push_back(sphere2);
 	//sceneObjects.push_back(sphere2);
-	//Tetrahedron* tetra = new Tetrahedron(glm::dvec3(5, -2, -2), glm::dvec3(3, -2, -5), glm::dvec3(7, -5, -5), glm::dvec3(7, 1, -5), glm::dvec3(0.2, 1, 0.2), 2, 0);
+	Tetrahedron* tetra = new Tetrahedron(glm::dvec3(10,2,-3), glm::dvec3(10,2,-5), glm::dvec3(7, 2, -5), glm::dvec3(10, 0, -5), glm::dvec3(0.2, 1, 0.2), 2, 0.5, false);
+	scene.push_back(tetra);
+	sceneObjects.push_back(tetra);
 	/*sceneObjects.push_back(sphere2);
 	scene.push_back(sphere2);
 	sceneObjects.push_back(sphere1);

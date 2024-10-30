@@ -4,6 +4,8 @@
 
 class Tetrahedron : public Polygon {
 public:
+	std::vector<Triangle*> triangles;
+
 	Tetrahedron(const glm::dvec3& point1, const glm::dvec3& point2, const glm::dvec3& point3, const glm::dvec3& point4, const glm::dvec3& col, const int& surfID, const double reflec = 0.0, bool isB = false) {
 		verticies.push_back(point1);
 		verticies.push_back(point2);
@@ -16,35 +18,50 @@ public:
 		constructTriangles();
 
 	}
+	Tetrahedron(Polygon* tetra) {
+		/*verticies.push_back(tetra->verticies[0]);
+		verticies.push_back(tetra->verticies[1]);
+		verticies.push_back(tetra->verticies[2]);
+		verticies.push_back(tetra->verticies[3]);
+		color = tetra->color;
+		surfaceID = surfID;
+		reflectance = reflec;
+		isBoundry = isB;
+		constructTriangles();*/
+		
+	}
 
+	
 	void constructTriangles() {
-		Triangle tri1(verticies[0], verticies[1], verticies[2], color, 2, 0.0, true);
-		Triangle tri2(verticies[0], verticies[3], verticies[1], color, 2, 0.0, true);
-		Triangle tri3(verticies[0], verticies[2], verticies[3], color, 2, 0.0, true);
-		Triangle tri4(verticies[2], verticies[1], verticies[3], color, 2, 0.0, true);
+		Triangle* tri1 = new Triangle(verticies[0], verticies[1], verticies[2], color, surfaceID, reflectance, isBoundry);
+		Triangle* tri2 = new Triangle(verticies[0], verticies[3], verticies[1], color, surfaceID, reflectance, isBoundry);
+		Triangle* tri3 = new Triangle(verticies[0], verticies[2], verticies[3], color, surfaceID, reflectance, isBoundry);
+		Triangle* tri4 = new Triangle(verticies[2], verticies[1], verticies[3], color, surfaceID, reflectance, isBoundry);
 		triangles.push_back(tri1);
 		triangles.push_back(tri2);
 		triangles.push_back(tri3);
 		triangles.push_back(tri4);
 	}
 
-/*	std::pair<Polygon*, double> surfaceIntersectionTest(Ray& r) override {
-		for (Triangle temp : triangles) {
-			std::pair<Polygon*, double> intersectedSurface = temp.surfaceIntersectionTest(r);
+	double surfaceIntersectionTest(Ray& r) override {
+		std::vector<double> intersectedSurface;
+		for (Triangle* temp : triangles) {
+			intersectedSurface.push_back(temp->surfaceIntersectionTest(r));
+		}
 
-			
-			if (intersectedSurface.first != nullptr) {
-				//std::cout << intersectedSurface->color.b << "\n";
-				return intersectedSurface;
+		double closestT = -1;
+		for (double t : intersectedSurface) {
+			if ((closestT < 0.0 || t < closestT) && t>1e-6) {
+				closestT = t;
 			}
 		}
 
-		return std::pair(nullptr, std::numeric_limits<double>::max());
+		return closestT;
 	}
 
-	*/
-
+	
+	
 private:
-	std::vector<Triangle> triangles;
+	
 };
 

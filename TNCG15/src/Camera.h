@@ -11,6 +11,7 @@
 #include "Ray.h"
 #include <fstream>
 #include <chrono>
+#include "Tetrahedron.h"
 
 	class Camera
 	{
@@ -100,11 +101,33 @@
 				
 				for (Polygon* obj : objects)
 				{
-					double t = obj->surfaceIntersectionTest(*previousRay);
-					if (t > epsilon && (closestT < 0.0 || t < closestT)) {
-						closestT = t;
-						closestSurface = obj;
+					if (typeid(*obj) == typeid(Tetrahedron)) {
+						for (Triangle* tri : dynamic_cast<Tetrahedron*>(obj)->triangles) {
+							double t = tri->surfaceIntersectionTest(*previousRay);
+							if (t > epsilon && (closestT < 0.0 || t < closestT)) {
+								closestT = t;
+								closestSurface = tri;
+							}
+						}
 					}
+					else if(typeid(*obj) == typeid(Rectangle)) {
+						for (Triangle* tri : dynamic_cast<Rectangle*>(obj)->triangles) {
+							double t = tri->surfaceIntersectionTest(*previousRay);
+							if (t > epsilon && (closestT < 0.0 || t < closestT)) {
+								closestT = t;
+								closestSurface = tri;
+							}
+						}
+					}
+					else {
+						double t = obj->surfaceIntersectionTest(*previousRay);
+						if (t > epsilon && (closestT < 0.0 || t < closestT)) {
+							closestT = t;
+							closestSurface = obj;
+						}
+					}
+					
+					
 
 				}
 				
@@ -309,7 +332,7 @@
 			//Create image-matrix from raytrace
 			auto start = std::chrono::high_resolution_clock::now();
 
-			int samples = 50;
+			int samples = 40;
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
 				std::vector<glm::dvec3> row;
