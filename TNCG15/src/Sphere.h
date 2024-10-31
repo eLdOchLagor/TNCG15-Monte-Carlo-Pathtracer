@@ -39,9 +39,7 @@ public:
 			normal = glm::normalize(end_point - center);
 
 			// Ensure normal is facing towards the ray, to work for refractions inside object
-			if (glm::dot(r.direction, normal) > 0) {
-				normal = -normal;  // Flip the normal
-			}
+			
 
 			//r.radiance = color;
 
