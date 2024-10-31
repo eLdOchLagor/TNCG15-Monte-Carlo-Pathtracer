@@ -165,7 +165,7 @@
 				else if (previousRay->hit_surface->surfaceID == 3) // If ray hits a transparent object
 				{	
 					double R0 = (1 - 1.5) / (1 + 1.5) * (1 - 1.5) / (1 + 1.5); // Works both ways with n1, n2
-					double R = R0 + (1 - R0) * pow((1 - glm::dot(previousRay->direction, previousRay->hit_surface->normal)), 5); // Chance to reflect, derived from Schlick's formula
+					double R = R0 + (1 - R0) * pow((1 - glm::dot(-previousRay->direction, previousRay->hit_surface->normal)), 5); // Chance to reflect, derived from Schlick's formula
 
 					if (previousRay->currentRefractiveMedium == 1.0) // Hitting object on the outside
 					{
