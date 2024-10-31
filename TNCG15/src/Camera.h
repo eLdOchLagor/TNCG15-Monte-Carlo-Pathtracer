@@ -169,7 +169,7 @@
 
 					if (previousRay->currentRefractiveMedium == 1.0){ // Hitting object on the outside
 						
-						double R = R0 + (1 - R0) * pow((1 - glm::dot(previousRay->direction, -previousRay->hit_surface->normal)), 5);
+						double R = R0 + (1 - R0) * pow((1 - (glm::dot(previousRay->direction, -previousRay->hit_surface->normal) / (glm::length(previousRay->direction) * glm::length(previousRay->hit_surface->normal)))), 5);
 						if (generateRandomValue() < R) // Reflect
 						{
 							previousRay = perfectReflection(previousRay);
@@ -196,7 +196,7 @@
 					}
 					else if (previousRay->currentRefractiveMedium == 1.5) // Inside glass object
 					{
-						double R = R0 + (1 - R0) * pow((1 - glm::dot(previousRay->direction, previousRay->hit_surface->normal)), 5);
+						double R = R0 + (1 - R0) * pow((1 - (glm::dot(previousRay->direction, previousRay->hit_surface->normal)/(glm::length(previousRay->direction)*glm::length(previousRay->hit_surface->normal)))), 5);
 						//std::cout << "Inside object";
 						double angle = acos(glm::dot(previousRay->direction, previousRay->hit_surface->normal));
 
@@ -333,7 +333,7 @@
 			//Create image-matrix from raytrace
 			auto start = std::chrono::high_resolution_clock::now();
 
-			int samples = 100;
+			int samples = 50;
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
 				std::vector<glm::dvec3> row;
