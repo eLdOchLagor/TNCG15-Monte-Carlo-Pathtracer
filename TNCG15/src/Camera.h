@@ -176,13 +176,13 @@
 						}
 						else // Refract into object
 						{
-							double R1 = previousRay->currentRefractiveMedium == 1 ? 1 / 1.5 : 1.5;
+							double R1 = 1 / 1.5 ;
 
 							double cos_theta_i = glm::dot(previousRay->direction, previousRay->hit_surface->normal); // Cosine of the incident angle
-							double cos_theta_t = sqrt(1.0 - R * R * (1.0 - cos_theta_i * cos_theta_i));
+							double cos_theta_t = sqrt(1.0 - R1 * R1 * (1.0 - cos_theta_i * cos_theta_i));
 
 							// Calculate the refracted direction using Snell's law
-							glm::dvec3 d_refr = R * previousRay->direction + (R * cos_theta_i - cos_theta_t) * previousRay->hit_surface->normal;
+							glm::dvec3 d_refr = R1 * previousRay->direction + (R1 * cos_theta_i - cos_theta_t) * previousRay->hit_surface->normal;
 
 							glm::dvec3 startPoint = previousRay->end_point + d_refr * epsilon;
 							glm::dvec3 importance = previousRay->radiance;
@@ -200,7 +200,7 @@
 						//std::cout << "Inside object";
 						double angle = acos(glm::dot(previousRay->direction, previousRay->hit_surface->normal));
 
-						if (1.5/1 * sin(angle) > 1.0) // If total internal reflection, reflect
+						if (1.5 * sin(angle) > 1.0) // If total internal reflection, reflect
 						{
 							previousRay = perfectReflection(previousRay);
 							previousRay->currentRefractiveMedium = 1.5;
@@ -216,13 +216,13 @@
 							else // Refract out of the object
 							{
 								//std::cout << "rrr";
-								double R1 = previousRay->currentRefractiveMedium == 1 ? 1 / 1.5 : 1.5;
+								double R1 = 1.5;
 
 								double cos_theta_i = cos(angle); // Cosine of the incident angle
-								double cos_theta_t = sqrt(1.0 - R * R * (1.0 - cos_theta_i * cos_theta_i));
+								double cos_theta_t = sqrt(1.0 - R1 * R1 * (1.0 - cos_theta_i * cos_theta_i));
 
 								// Calculate the refracted direction using Snell's law
-								glm::dvec3 d_refr = R * previousRay->direction + (R * cos_theta_i - cos_theta_t) * previousRay->hit_surface->normal;
+								glm::dvec3 d_refr = R1 * previousRay->direction + (R1 * cos_theta_i - cos_theta_t) * previousRay->hit_surface->normal;
 
 								glm::dvec3 startPoint = previousRay->end_point + d_refr * epsilon;
 								glm::dvec3 importance = previousRay->radiance;
@@ -333,7 +333,7 @@
 			//Create image-matrix from raytrace
 			auto start = std::chrono::high_resolution_clock::now();
 
-			int samples = 50;
+			int samples = 30;
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
 				std::vector<glm::dvec3> row;
