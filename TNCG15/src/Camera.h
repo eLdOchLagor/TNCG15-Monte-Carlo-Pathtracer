@@ -68,6 +68,31 @@
 			return newRay;
 		}
 
+		Ray* perfectRefraction(Ray* r, double n1, double n2) {
+			double R = n1 / n2;
+
+			if (n1 == 1.5) // If exiting object, flip normal
+			{
+				r->hit_surface->normal = -r->hit_surface->normal;
+			}
+			
+			double cos_theta_i = glm::dot(r->direction, r->hit_surface->normal); // Cosine of the incident angle
+			double cos_theta_t = sqrt(1.0 - R * R * (1.0 - cos_theta_i * cos_theta_i));
+
+			// Calculate the refracted direction using Snell's law
+			glm::dvec3 d_refr = R * r->direction + (R * cos_theta_i - cos_theta_t) * r->hit_surface->normal;
+
+			glm::dvec3 startPoint = r->end_point + d_refr * epsilon;
+			glm::dvec3 importance = r->radiance;
+			Ray* newRay = new Ray(startPoint, d_refr, importance);
+			newRay->currentRefractiveMedium = n2;
+			newRay->depth = r->depth + 1;
+			r->next_ray = newRay;
+			newRay->previous_ray = r;
+
+			return newRay;
+		}
+
 		Ray* diffuseReflection(Ray* r, double& randAz, double& randInc) {
 			double x = cos(randAz) * sin(randInc);
 			double y = sin(randAz) * sin(randInc);
@@ -169,34 +194,19 @@
 
 					if (previousRay->currentRefractiveMedium == 1.0){ // Hitting object on the outside
 						
-						double R = R0 + (1 - R0) * pow((1 - (glm::dot(previousRay->direction, -previousRay->hit_surface->normal) / (glm::length(previousRay->direction) * glm::length(previousRay->hit_surface->normal)))), 5);
+						double R = R0 + (1 - R0) * pow((1 - (glm::dot(previousRay->direction, -previousRay->hit_surface->normal))), 5);
 						if (generateRandomValue() < R) // Reflect
 						{
 							previousRay = perfectReflection(previousRay);
 						}
 						else // Refract into object
 						{
-							double R1 = 1 / 1.5 ;
-
-							double cos_theta_i = glm::dot(previousRay->direction, previousRay->hit_surface->normal); // Cosine of the incident angle
-							double cos_theta_t = sqrt(1.0 - R1 * R1 * (1.0 - cos_theta_i * cos_theta_i));
-
-							// Calculate the refracted direction using Snell's law
-							glm::dvec3 d_refr = R1 * previousRay->direction + (R1 * cos_theta_i - cos_theta_t) * previousRay->hit_surface->normal;
-
-							glm::dvec3 startPoint = previousRay->end_point + d_refr * epsilon;
-							glm::dvec3 importance = previousRay->radiance;
-							Ray* newRay = new Ray(startPoint, d_refr, importance);
-							newRay->currentRefractiveMedium = 1.5;
-							newRay->depth = previousRay->depth + 1;
-							previousRay->next_ray = newRay;
-							newRay->previous_ray = previousRay;
-							previousRay = newRay;
+							previousRay = perfectRefraction(previousRay, 1, 1.5);
 						}
 					}
 					else if (previousRay->currentRefractiveMedium == 1.5) // Inside glass object
 					{
-						double R = R0 + (1 - R0) * pow((1 - (glm::dot(previousRay->direction, previousRay->hit_surface->normal)/(glm::length(previousRay->direction)*glm::length(previousRay->hit_surface->normal)))), 5);
+						double R = R0 + (1 - R0) * pow((1 - (glm::dot(previousRay->direction, previousRay->hit_surface->normal))), 5);
 						//std::cout << "Inside object";
 						double angle = acos(glm::dot(previousRay->direction, previousRay->hit_surface->normal));
 
@@ -215,23 +225,7 @@
 							}
 							else // Refract out of the object
 							{
-								//std::cout << "rrr";
-								double R1 = 1.5;
-
-								double cos_theta_i = cos(angle); // Cosine of the incident angle
-								double cos_theta_t = sqrt(1.0 - R1 * R1 * (1.0 - cos_theta_i * cos_theta_i));
-
-								// Calculate the refracted direction using Snell's law
-								glm::dvec3 d_refr = R1 * previousRay->direction + (R1 * cos_theta_i - cos_theta_t) * previousRay->hit_surface->normal;
-
-								glm::dvec3 startPoint = previousRay->end_point + d_refr * epsilon;
-								glm::dvec3 importance = previousRay->radiance;
-								Ray* newRay = new Ray(startPoint, d_refr, importance);
-								newRay->currentRefractiveMedium = 1;
-								newRay->depth = previousRay->depth + 1;
-								previousRay->next_ray = newRay;
-								newRay->previous_ray = previousRay;
-								previousRay = newRay;
+								previousRay = perfectRefraction(previousRay, 1.5, 1);
 							}
 						}
 					}
@@ -333,7 +327,7 @@
 			//Create image-matrix from raytrace
 			auto start = std::chrono::high_resolution_clock::now();
 
-			int samples = 30;
+			int samples = 100;
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
 				std::vector<glm::dvec3> row;
