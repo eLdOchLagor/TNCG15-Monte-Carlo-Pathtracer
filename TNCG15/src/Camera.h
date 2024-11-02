@@ -12,6 +12,7 @@
 #include <fstream>
 #include <chrono>
 #include "Tetrahedron.h"
+#include <thread>
 
 	class Camera
 	{
@@ -321,13 +322,57 @@
 			return false;  // Light is visible
 		}
 
+		void renderRows(std::vector<std::vector<glm::dvec3>>& frameBuffer, int startRow, int endRow, int samples) {
+			for (int z = startRow; z < endRow; ++z) {
+
+				std::vector<glm::dvec3> row;
+				for (int y = 0; y < widthPixels; y++) {
+					glm::dvec3 finalCol(0.0, 0.0, 0.0);
+
+					for (int N = 0; N < samples; N++) {
+						double u_offset = generateRandomValue();
+						double v_offset = generateRandomValue();
+						double u = ((y + u_offset) / widthPixels) * imagePlaneWidth - imagePlaneWidth / 2;
+						double v = (1.0 - (z + v_offset) / heightPixels) * imagePlaneHeight - imagePlaneHeight / 2;
+
+						Ray* firstRay = shootStartRay(position, u, v);
+						shootNextRay(*firstRay);
+
+						//std::cout << firstRay.radiance.x << " " << firstRay.radiance.y << " " << firstRay.radiance.z << "\n";
+
+						finalCol += firstRay->radiance;
+						firstRay->dealocateRay(*firstRay);
+
+					}
+					finalCol /= samples;
+					row.push_back(finalCol);
+				}
+				frameBuffer[z] = row; // Assign the completed row to the frame buffer
+			}
+		}
+
 		void render() {
-			std::vector<std::vector<glm::dvec3>> frameBuffer;
-			
+			std::vector<std::vector<glm::dvec3>> frameBuffer(heightPixels, std::vector<glm::dvec3>(widthPixels));
+			int samples = 50;
+			int numThreads = std::thread::hardware_concurrency();
+			int rowsPerThread = heightPixels / numThreads;
+
 			//Create image-matrix from raytrace
 			auto start = std::chrono::high_resolution_clock::now();
 
-			int samples = 50;
+			std::vector<std::thread> threads;
+			for (int t = 0; t < numThreads; ++t) {
+				int startRow = t * rowsPerThread;
+				int endRow = (t == numThreads - 1) ? heightPixels : startRow + rowsPerThread;
+
+				threads.emplace_back(&Camera::renderRows, this, std::ref(frameBuffer), startRow, endRow, samples);
+			}
+
+			// Join threads
+			for (auto& t : threads) {
+				t.join();
+			}
+
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
 				std::vector<glm::dvec3> row;
