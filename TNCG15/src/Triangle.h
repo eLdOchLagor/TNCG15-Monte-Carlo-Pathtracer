@@ -23,6 +23,10 @@ public:
 		isBoundry = isB;
 	}
 
+	Triangle* clone() const {
+		return new Triangle(*this);
+	}
+
 	double surfaceIntersectionTest(Ray& r) override {
 
 		glm::dvec3 d = glm::normalize(r.direction);

@@ -25,6 +25,10 @@
 			constructTriangles();
 		}
 
+		Rectangle* clone() const {
+			return new Rectangle(*this);
+		}
+
 		void constructTriangles() {
 			Triangle* tri1 = new Triangle(verticies[0], verticies[1], verticies[2], color, surfaceID, reflectance, isBoundry);
 			Triangle* tri2 = new Triangle(verticies[0], verticies[2], verticies[3], color, surfaceID, reflectance, isBoundry);

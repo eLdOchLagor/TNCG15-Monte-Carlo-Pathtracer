@@ -12,6 +12,10 @@ public:
 		isBoundry = isB;
 	}
 
+	Sphere* clone() const {
+		return new Sphere(*this);
+	}
+
 	double surfaceIntersectionTest(Ray& r) override {
 		double c1 = glm::dot(r.direction, r.direction);
 		double c2 = 2.0 * glm::dot(r.direction, r.start_point - center);

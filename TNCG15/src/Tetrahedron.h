@@ -18,6 +18,11 @@ public:
 		constructTriangles();
 
 	}
+
+	Tetrahedron* clone() const {
+		return new Tetrahedron(*this);
+	}
+
 	Tetrahedron(Polygon* tetra) {
 		/*verticies.push_back(tetra->verticies[0]);
 		verticies.push_back(tetra->verticies[1]);

@@ -36,6 +36,8 @@
 
 		std::mutex objectsMutex;
 		std::mutex shadowsMutex;
+		std::mutex surfaceMutex;
+		std::mutex surface2Mutex;
 
 		Camera(glm::dvec3 pos, glm::dvec3 fwd, glm::dvec3 up, double fov, int width, int height, std::vector<Polygon*> obj, std::vector<Polygon*> sceObj, std::vector<Polygon*> lightObj) : position(pos), forward(fwd), fov(fov), widthPixels{ width }, heightPixels{ height }, objects(obj), sceneObjects{sceObj}, lights{lightObj} {
 			aspectRatio = (double)width / height;
@@ -127,6 +129,7 @@
 		void shootNextRay(Ray& firstRay) {
 			//std::cout << i << "\n";
 			Ray* previousRay = &firstRay;
+			Polygon* surface;
 			while (true) {//previousRay->depth < 5000 tog bort att vi dödar ray paths då det inte funkar med reflective/refractive ytor
 				double closestT = -1.0;
 				Polygon* closestSurface = nullptr;
@@ -160,22 +163,24 @@
 						}
 					}
 				}
-				objectsLock.unlock();
 				
 				previousRay->hit_surface = closestSurface;
 				previousRay->end_point = previousRay->start_point + closestT * previousRay->direction;
-				//std::cout << closestT << "\n";
+				surface = closestSurface->clone(); // Creates a copy preventing the same surface from being accessed by multiple threads at once
 
-				if (previousRay->hit_surface->surfaceID == 0) { // If ray hits lightsource
+				objectsLock.unlock();
+
+
+				if (surface->surfaceID == 0) { // If ray hits lightsource
 					previousRay->radiance = glm::dvec3(1.0, 1.0, 1.0);
 					break;
 				}
 
-				if (previousRay->hit_surface->surfaceID == 1) { // If ray hits a mirror
+				if (surface->surfaceID == 1) { // If ray hits a mirror
 					previousRay = perfectReflection(previousRay);
 				}
-				else if (previousRay->hit_surface->surfaceID == 2) { // If ray hits a diffuse reflector
-					double Roh = previousRay->hit_surface->reflectance;
+				else if (surface->surfaceID == 2) { // If ray hits a diffuse reflector
+					double Roh = surface->reflectance;
 
 					double randomValue1 = generateRandomValue();
 					double randomValue2 = generateRandomValue();
@@ -193,14 +198,14 @@
 						break;
 					}
 				}
-				else if (previousRay->hit_surface->surfaceID == 3) // If ray hits a transparent object
+				else if (surface->surfaceID == 3) // If ray hits a transparent object
 				{	
 					double R0 = (1 - 1.5) / (1 + 1.5) * (1 - 1.5) / (1 + 1.5); // Works both ways with n1, n2
 					//double R = R0 + (1 - R0) * pow((1 - glm::dot(previousRay->direction, previousRay->hit_surface->normal)), 5); // Chance to reflect, derived from Schlick's formula
 
 					if (previousRay->currentRefractiveMedium == 1.0){ // Hitting object on the outside
 						
-						double R = R0 + (1 - R0) * pow((1 - (glm::dot(previousRay->direction, -previousRay->hit_surface->normal))), 5);
+						double R = R0 + (1 - R0) * pow((1 - (glm::dot(previousRay->direction, -surface->normal))), 5);
 						if (generateRandomValue() < R) // Reflect
 						{
 							previousRay = perfectReflection(previousRay);
@@ -212,9 +217,9 @@
 					}
 					else if (previousRay->currentRefractiveMedium == 1.5) // Inside glass object
 					{
-						double R = R0 + (1 - R0) * pow((1 - (glm::dot(previousRay->direction, previousRay->hit_surface->normal))), 5);
+						double R = R0 + (1 - R0) * pow((1 - (glm::dot(previousRay->direction, surface->normal))), 5);
 						//std::cout << "Inside object";
-						double angle = acos(glm::dot(previousRay->direction, previousRay->hit_surface->normal));
+						double angle = acos(glm::dot(previousRay->direction, surface->normal));
 
 						if (1.5 * sin(angle) > 1.0) // If total internal reflection, reflect
 						{
@@ -241,31 +246,46 @@
 
 
 				}
+
+				delete surface;
 			}
 
 			// Traverse raypath from last ray to pixel
 			Ray* rayPath = previousRay;
-			if (rayPath->hit_surface->surfaceID != 0) {
+			std::unique_lock<std::mutex> surfaceLock(surfaceMutex);
+			surface = rayPath->hit_surface->clone();
+			surfaceLock.unlock();
+
+			if (surface->surfaceID != 0) {
 				rayPath->radiance = calculateDirectIllumination(rayPath);
 			}
+
+			delete surface;
 			
 			
 			while (rayPath->previous_ray != nullptr) {
-				if (rayPath->previous_ray->hit_surface->surfaceID == 1 || rayPath->previous_ray->hit_surface->surfaceID == 3) { // Mirror or transparent object
+				std::unique_lock<std::mutex> surface2Lock(surface2Mutex);
+				Polygon* surfacePrev = rayPath->previous_ray->hit_surface->clone();
+				surface2Lock.unlock();
+
+				if (surfacePrev->surfaceID == 1 || surfacePrev->surfaceID == 3) { // Mirror or transparent object
 					
 					rayPath->previous_ray->radiance = rayPath->radiance;
 					rayPath = rayPath->previous_ray;
 					
 				}
 				else { // If diffuse object
-					rayPath->previous_ray->radiance = glm::dvec3(rayPath->previous_ray->hit_surface->color.r * rayPath->radiance.r,
-						rayPath->previous_ray->hit_surface->color.g * rayPath->radiance.g,
-						rayPath->previous_ray->hit_surface->color.b * rayPath->radiance.b) +
+					rayPath->previous_ray->radiance = glm::dvec3(surfacePrev->color.r * rayPath->radiance.r,
+						surfacePrev->color.g * rayPath->radiance.g,
+						surfacePrev->color.b * rayPath->radiance.b) +
 						calculateDirectIllumination(rayPath->previous_ray);
 					
 					rayPath = rayPath->previous_ray;
 				}
+
+				delete surfacePrev;
 			}
+			
 			
 		}
 
@@ -309,6 +329,7 @@
 
 			return radiance *= surfaceColor/(N); //surfaceColor *
 		}
+
 		bool isInShadow(const glm::dvec3& point, const glm::dvec3& lightPos, const Polygon* originSurface) {
 			Ray* shadowRay = new Ray(point, glm::normalize(lightPos - point), glm::dvec3(0,0,0));
 

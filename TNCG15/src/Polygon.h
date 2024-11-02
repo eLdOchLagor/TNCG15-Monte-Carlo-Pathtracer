@@ -8,7 +8,8 @@
 
 	class Polygon {
 	public:
-		
+		virtual Polygon* clone() const = 0;
+
 		std::vector<glm::dvec3> verticies;
 		glm::dvec3 color;
 		glm::dvec3 normal;
