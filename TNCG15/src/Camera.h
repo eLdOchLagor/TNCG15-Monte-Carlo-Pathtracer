@@ -13,6 +13,7 @@
 #include <chrono>
 #include "Tetrahedron.h"
 #include <thread>
+#include <mutex>
 
 	class Camera
 	{
@@ -32,6 +33,9 @@
 
 		std::vector<Polygon*> objects;
 		std::vector<Polygon*> sceneObjects;
+
+		std::mutex objectsMutex;
+		std::mutex shadowsMutex;
 
 		Camera(glm::dvec3 pos, glm::dvec3 fwd, glm::dvec3 up, double fov, int width, int height, std::vector<Polygon*> obj, std::vector<Polygon*> sceObj, std::vector<Polygon*> lightObj) : position(pos), forward(fwd), fov(fov), widthPixels{ width }, heightPixels{ height }, objects(obj), sceneObjects{sceObj}, lights{lightObj} {
 			aspectRatio = (double)width / height;
@@ -118,6 +122,8 @@
 			return newRay;
 		}
 
+		
+
 		void shootNextRay(Ray& firstRay) {
 			//std::cout << i << "\n";
 			Ray* previousRay = &firstRay;
@@ -125,6 +131,7 @@
 				double closestT = -1.0;
 				Polygon* closestSurface = nullptr;
 				
+				std::unique_lock<std::mutex> objectsLock(objectsMutex);
 				for (Polygon* obj : objects)
 				{
 					if (typeid(*obj) == typeid(Tetrahedron)) {
@@ -152,10 +159,8 @@
 							closestSurface = obj;
 						}
 					}
-					
-					
-
 				}
+				objectsLock.unlock();
 				
 				previousRay->hit_surface = closestSurface;
 				previousRay->end_point = previousRay->start_point + closestT * previousRay->direction;
@@ -268,6 +273,8 @@
 			glm::dvec3 radiance(0.0, 0.0, 0.0);
 			double N = 15;
 			glm::dvec3 surfaceColor = ray->hit_surface->color;
+
+			std::unique_lock<std::mutex> shadowsLock(shadowsMutex);
 			for (Polygon* light : lights)
 			{
 				glm::dvec3 e1 = light->verticies[1] - light->verticies[0];
@@ -298,7 +305,7 @@
 				double A = glm::length(e1) * glm::length(e2);
 				radiance *= A*10/M_PI ;
 			}
-			
+			shadowsLock.unlock();
 
 			return radiance *= surfaceColor/(N); //surfaceColor *
 		}
@@ -317,6 +324,7 @@
 					return true;  // Something is blocking the light
 				}
 			}
+
 			delete shadowRay;
 			shadowRay = nullptr;
 			return false;  // Light is visible
@@ -364,7 +372,7 @@
 			for (int t = 0; t < numThreads; ++t) {
 				int startRow = t * rowsPerThread;
 				int endRow = (t == numThreads - 1) ? heightPixels : startRow + rowsPerThread;
-
+				std::cout << startRow << " " << endRow << "\n";
 				threads.emplace_back(&Camera::renderRows, this, std::ref(frameBuffer), startRow, endRow, samples);
 			}
 
@@ -372,36 +380,7 @@
 			for (auto& t : threads) {
 				t.join();
 			}
-
-			for (size_t z = 0; z < heightPixels; z++) {
-				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
-				std::vector<glm::dvec3> row;
-				for (size_t y = 0; y < widthPixels; y++) {
-					glm::dvec3 finalCol (0.0, 0.0, 0.0); 
-
-					for (size_t N = 0; N < samples; N++) {
-						double u_offset = generateRandomValue();
-						double v_offset = generateRandomValue();
-
-						double u = ((y + u_offset) / widthPixels) * imagePlaneWidth - imagePlaneWidth / 2;
-						double v = (1.0 - (z + v_offset) / heightPixels) * imagePlaneHeight - imagePlaneHeight / 2;
-						
-						Ray* firstRay = shootStartRay(glm::dvec3(-1.0, 0.0, 0.0), u, v); // Have to adjust eye pos based on camera position
-						shootNextRay(*firstRay);
-
-						//std::cout << firstRay.radiance.x << " " << firstRay.radiance.y << " " << firstRay.radiance.z << "\n";
-						
-						finalCol += firstRay->radiance;
-						firstRay->dealocateRay(*firstRay);
-						
-					}
-					finalCol /= samples;
-					row.push_back(finalCol); //TODO: replace with generateRay
-					//row.push_back((y % 2 == 0 ? glm::dvec3(0, 0, 0) : glm::dvec3(255, 255, 255))); //TODO: replace with generateRay
-				}
-				frameBuffer.push_back(row);
-			}
-
+			std::cout << "done";
 			auto end = std::chrono::high_resolution_clock::now();
 			std::chrono::duration<double> time_taken = end - start;
 			std::cout << "\nTime taken to render : " << time_taken.count() << " sec \n";
