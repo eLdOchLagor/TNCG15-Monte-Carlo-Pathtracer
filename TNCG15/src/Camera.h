@@ -327,7 +327,7 @@
 			//Create image-matrix from raytrace
 			auto start = std::chrono::high_resolution_clock::now();
 
-			int samples = 100;
+			int samples = 50;
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
 				std::vector<glm::dvec3> row;
