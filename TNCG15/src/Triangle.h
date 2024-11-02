@@ -37,13 +37,20 @@ public:
 
 			glm::dvec3 P = glm::cross(d, c2);
 			double det = glm::dot(c1, P);
-
+			//if (det < 1e-8 && det > -1e-8) {
+			//	return -1.0;
+			//}
 			glm::dvec3 T = s - verticies[0];
 			double u = glm::dot(T, P) / det;
+			if (u < 0 || u > 1) {
+				return -1.0;
+			}
 
 			glm::dvec3 Q = glm::cross(T, c1);
 			double v = glm::dot(d, Q) / det;
-
+			if (v < 0 || v > 1) {
+				return -1.0;
+			}
 			double t = glm::dot(c2, Q) / det;
 
 			glm::dvec3 intersectionPoint = s + t * d;
