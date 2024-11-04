@@ -48,20 +48,24 @@ public:
 
 			glm::dvec3 Q = glm::cross(T, c1);
 			double v = glm::dot(d, Q) / det;
-			if (v < 0 || v > 1) {
+			if (v < 0 || v > 1-u) {
 				return -1.0;
 			}
 			double t = glm::dot(c2, Q) / det;
-
-			glm::dvec3 intersectionPoint = s + t * d;
+			if (t < 0) {
+				return -1.0;
+			}
+			return t;
+			
 			// If intersectionPoint is a valid point on the surface
-			if (0.0 <= u && 0.0 <= v && u + v <= 1.0 && t >= 0)
-			{
+			//if (u + v <= 1.0)
+			//{
+				//glm::dvec3 intersectionPoint = s + t * d;
 				//r.hit_surface = this;
 				//r.end_point = intersectionPoint;
 				//r.radiance = color;
-				return t;
-			}
+			
+			//}
 
 		}
 		return -1.0;
