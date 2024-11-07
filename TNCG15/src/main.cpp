@@ -71,7 +71,7 @@ int main()
 	//scene.push_back(test);
 	
 	//Lights ----------------------------------------------------------------------------------------
-	Rectangle* light1 = new Rectangle(glm::dvec3(8, -2, 4.99), glm::dvec3(8, 2, 4.99), glm::dvec3(11, 2, 4.99), glm::dvec3(11, -2, 4.99), glm::dvec3(1.0, 1.0, 1.0), 0, 0, true);
+	Rectangle* light1 = new Rectangle(glm::dvec3(8, -2, 4.99), glm::dvec3(8, 2, 4.99), glm::dvec3(11, 2, 4.99), glm::dvec3(11, -2, 4.99), glm::dvec3(15.0, 15.0, 15.0), 0, 0, true);
 	lights.push_back(light1);
 	scene.push_back(light1);
 	//-----------------------------------------------------------------------------------------------

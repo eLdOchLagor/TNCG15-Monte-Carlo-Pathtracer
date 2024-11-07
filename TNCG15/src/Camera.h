@@ -161,7 +161,7 @@
 				//std::cout << closestT << "\n";
 
 				if (previousRay->hit_surface->surfaceID == 0) { // If ray hits lightsource
-					previousRay->radiance = glm::dvec3(1.0, 1.0, 1.0);
+					previousRay->radiance = lights[0]->color;
 					break;
 				}
 
