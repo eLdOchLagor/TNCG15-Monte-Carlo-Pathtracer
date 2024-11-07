@@ -6,7 +6,7 @@
 # Add source to this project's executable.
 
 
-add_executable(TNCG15 src/main.cpp src/Camera.cpp src/TNCG15.cpp  src/Triangle.cpp src/Polygon.cpp src/Ray.cpp src/Rectangle.cpp src/Camera.h src/Triangle.h src/TNCG15.h src/Polygon.h src/Ray.h src/Rectangle.h src/stb_image_write.h src/Sphere.cpp src/Sphere.h src/Tetrahedron.cpp src/Tetrahedron.h)
+add_executable(TNCG15 src/main.cpp src/Camera.cpp src/TNCG15.cpp  src/Triangle.cpp src/Polygon.cpp src/Ray.cpp src/Rectangle.cpp src/Camera.h src/Triangle.h src/TNCG15.h src/Polygon.h src/Ray.h src/Rectangle.h src/stb_image_write.h src/Sphere.cpp src/Sphere.h src/Tetrahedron.cpp src/Tetrahedron.h src/Photon.cpp src/Photon.h)
 
 include(FetchContent)
 

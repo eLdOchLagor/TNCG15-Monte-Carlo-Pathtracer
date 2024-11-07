@@ -12,6 +12,8 @@
 #include <fstream>
 #include <chrono>
 #include "Tetrahedron.h"
+#include <algorithm>
+#include "Photon.h"
 
 	class Camera
 	{
@@ -32,6 +34,11 @@
 		std::vector<Polygon*> objects;
 		std::vector<Polygon*> sceneObjects;
 
+		//TODO: Skapa ett KD-Tree för de olika typerna av photonerna. 
+		std::vector<Photon*> globalPhotons;
+		std::vector<Photon*> shadowPhotons;
+		std::vector<Photon*> causticPhotons;
+
 		Camera(glm::dvec3 pos, glm::dvec3 fwd, glm::dvec3 up, double fov, int width, int height, std::vector<Polygon*> obj, std::vector<Polygon*> sceObj, std::vector<Polygon*> lightObj) : position(pos), forward(fwd), fov(fov), widthPixels{ width }, heightPixels{ height }, objects(obj), sceneObjects{sceObj}, lights{lightObj} {
 			aspectRatio = (double)width / height;
 			right = glm::normalize(glm::cross(forward, up));
@@ -48,10 +55,10 @@
 			return firstRay;
 		}
 
-		double generateRandomValue() {
+		double generateRandomValue(double min = 0,double max = 1) {
 			static std::random_device rd;   // Obtain a random seed
 			static std::mt19937 gen(rd());  // Standard mersenne_twister_engine seeded with rd()
-			std::uniform_real_distribution<> dis(0.0, 1.0);
+			std::uniform_real_distribution<> dis(min, max);
 
 			return dis(rd);
 		}
@@ -117,13 +124,46 @@
 			return newRay;
 		}
 
-		void shootNextRay(Ray& firstRay) {
+		void shootCaustics() {
+			int N = 100000;
+
+			glm::dvec3 e1 = lights[0]->verticies[1] - lights[0]->verticies[0];
+			glm::dvec3 e2 = lights[0]->verticies[3] - lights[0]->verticies[0];
+
+			
+
+			
+
+			for (size_t n = 0; n < N; n++) {
+				double s = generateRandomValue();
+				double t = generateRandomValue();
+				double randomValuex = generateRandomValue(-1,1);
+				double randomValuey = generateRandomValue(-1,1);
+				double randomValuez = generateRandomValue();
+
+				glm::dvec3 directionVector = glm::normalize(glm::dvec3(randomValuex, randomValuey, randomValuez));
+				if (glm::dot(lights[0]->normal, directionVector) < 0) {
+					directionVector *= -1;
+				}
+				glm::dvec3 y = glm::dvec3(lights[0]->verticies[0]) + s * e1 + t * e2;
+				
+				Ray* globalPhotonRay = new Ray(y, directionVector, glm::dvec3(16 * M_PI / N));
+
+				shootNextRay(*globalPhotonRay, true);
+				
+				
+				
+			}
+		}
+
+		void shootNextRay(Ray& firstRay, bool photonRay = false) {
 			//std::cout << i << "\n";
 			Ray* previousRay = &firstRay;
 			while (true) {//previousRay->depth < 5000 tog bort att vi dödar ray paths då det inte funkar med reflective/refractive ytor
 				double closestT = -1.0;
 				Polygon* closestSurface = nullptr;
-				
+				std::vector<std::pair<double, Polygon*>> hitSurfaces;
+
 				for (Polygon* obj : objects)
 				{
 					if (typeid(*obj) == typeid(Tetrahedron)) {
@@ -132,6 +172,10 @@
 							if (t > epsilon && (closestT < 0.0 || t < closestT)) {
 								closestT = t;
 								closestSurface = tri;
+
+							}
+							if (photonRay && t > epsilon) {
+								hitSurfaces.push_back(std::pair(t, tri));
 							}
 						}
 					}
@@ -142,6 +186,9 @@
 								closestT = t;
 								closestSurface = tri;
 							}
+							if (photonRay && t > epsilon) {
+								hitSurfaces.push_back(std::pair(t, tri));
+							}
 						}
 					}
 					else {
@@ -150,11 +197,25 @@
 							closestT = t;
 							closestSurface = obj;
 						}
+						if (photonRay && t > epsilon) {
+							hitSurfaces.push_back(std::pair(t, obj));
+						}
 					}
 					
 					
 
 				}
+				//TODO: just nu så skickar vi bara tillbaka 1 av två t för sphere och tetrahydron, vilken inte funkar för shadowPhotons. Måste fixas!
+				if (photonRay) {
+					std::sort(hitSurfaces.begin(), hitSurfaces.begin());
+					for (size_t q = 1; q < std::size(hitSurfaces); q++) {
+						shadowPhotons.push_back(new Photon(previousRay->start_point + hitSurfaces[q].first * previousRay->direction, glm::dvec3(0), glm::dvec3(0), 1));
+					}
+				}
+				//TODO: Måste fixa causticRays samt GlobalRays. Gör Global först, då de nästan är klara.
+				//För att göra causticRays måste vi fixa area intersection med spheres. 
+
+				//Anpassa pathtracern till att använda sig av våran photon mapper.
 				
 				previousRay->hit_surface = closestSurface;
 				previousRay->end_point = previousRay->start_point + closestT * previousRay->direction;
@@ -238,6 +299,9 @@
 			}
 
 			// Traverse raypath from last ray to pixel
+			if (photonRay) {
+				return;
+			}
 			Ray* rayPath = previousRay;
 			if (rayPath->hit_surface->surfaceID != 0) {
 				rayPath->radiance = calculateDirectIllumination(rayPath);
