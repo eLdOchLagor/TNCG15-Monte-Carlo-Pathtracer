@@ -124,7 +124,7 @@
 			return newRay;
 		}
 
-		void shootCaustics() {
+		void initializeGlobalPhotons() {
 			int N = 100000;
 
 			glm::dvec3 e1 = lights[0]->verticies[1] - lights[0]->verticies[0];
@@ -149,14 +149,145 @@
 				
 				Ray* globalPhotonRay = new Ray(y, directionVector, glm::dvec3(16 * M_PI / N));
 
-				shootNextRay(*globalPhotonRay, true);
+				shootGlobalPhoton(*globalPhotonRay);
 				
 				
 				
 			}
+			std::cout << std::size(shadowPhotons) << "\n";
+			std::cout << std::size(globalPhotons);
 		}
+		void shootGlobalPhoton(Ray& r) {
+			Ray* previousRay = &r;
+			while (true) {
+				Polygon* closestSurface = nullptr;
+				std::vector<std::pair<double, Polygon*>> hitSurfaces;
 
-		void shootNextRay(Ray& firstRay, bool photonRay = false) {
+				for (Polygon* obj : objects)
+				{
+					if (typeid(*obj) == typeid(Tetrahedron)) {
+						for (Triangle* tri : dynamic_cast<Tetrahedron*>(obj)->triangles) {
+							double t = tri->surfaceIntersectionTest(*previousRay, true);
+							if (t > epsilon) {
+								hitSurfaces.push_back(std::pair(t, tri));
+							}					
+						}
+					}
+					else if (typeid(*obj) == typeid(Rectangle)) {
+						for (Triangle* tri : dynamic_cast<Rectangle*>(obj)->triangles) {
+							double t = tri->surfaceIntersectionTest(*previousRay, true);
+							if (t > epsilon) {
+								hitSurfaces.push_back(std::pair(t, tri));
+							}
+
+						}
+
+					
+					}
+				else {
+					double t = obj->surfaceIntersectionTest(*previousRay);
+					if (t > epsilon) {
+						hitSurfaces.push_back(std::pair(t, obj));
+					}
+					if (t > epsilon) {	
+						Ray* tmpRay = new Ray(previousRay->end_point = previousRay->start_point + t * previousRay->direction, previousRay->direction, previousRay->radiance);
+						double t_behind = obj->surfaceIntersectionTest(*tmpRay);
+						if (t_behind > epsilon) {
+							hitSurfaces.push_back(std::pair(t_behind, obj));
+						}
+					}
+				}
+
+				
+
+			}
+				std::sort(hitSurfaces.begin(), hitSurfaces.begin());
+				previousRay->hit_surface = hitSurfaces[0].second;
+				previousRay->end_point = previousRay->start_point + hitSurfaces[0].first * previousRay->direction;
+				if (previousRay->depth == 0 && (previousRay->hit_surface->surfaceID == 2 || previousRay->hit_surface->surfaceID == 1)) {
+					for (size_t q = 1; q < std::size(hitSurfaces); q++) {
+						shadowPhotons.push_back(new Photon(previousRay->start_point + hitSurfaces[q].first * previousRay->direction, glm::dvec3(0), glm::dvec3(0), 1));
+						//std::cout << q;
+					}
+				}
+				
+
+				if (previousRay->hit_surface->surfaceID == 0) { // If ray hits lightsource
+					//globalPhotons.push_back(new Photon(previousRay->end_point, previousRay->direction, previousRay->radiance, 0));
+					break;
+				}
+				else if (previousRay->hit_surface->surfaceID == 1) { // If ray hits a mirror
+					previousRay = perfectReflection(previousRay);
+				}
+
+				else if (previousRay->hit_surface->surfaceID == 2) { // If ray hits a diffuse reflector
+					double Roh = previousRay->hit_surface->reflectance;
+
+					double randomValue1 = generateRandomValue();
+					double randomValue2 = generateRandomValue();
+
+					double randInclination = acos(sqrt(1 - randomValue1));
+					double randAzimuth = 2 * M_PI * randomValue2;
+					double rr = randAzimuth / Roh;
+
+					if (rr <= 2 * M_PI) {
+						previousRay = diffuseReflection(previousRay, randAzimuth, randInclination);
+					}
+					//If we hit a diffuse surface and russian roulette determines that the ray is killed then thoust is the final if-statement determening 
+					//the destiny of the radiance.
+					else {
+						//TODO: kolla så att fluxen stämmer
+						globalPhotons.push_back(new Photon(previousRay->end_point, previousRay->direction, previousRay->radiance, 0));
+						break;
+					}
+				}
+				else if (previousRay->hit_surface->surfaceID == 3) // If ray hits a transparent object
+				{
+					double R0 = (1 - 1.5) / (1 + 1.5) * (1 - 1.5) / (1 + 1.5); // Works both ways with n1, n2
+					//double R = R0 + (1 - R0) * pow((1 - glm::dot(previousRay->direction, previousRay->hit_surface->normal)), 5); // Chance to reflect, derived from Schlick's formula
+
+					if (previousRay->currentRefractiveMedium == 1.0) { // Hitting object on the outside
+
+						double R = R0 + (1 - R0) * pow((1 - (glm::dot(previousRay->direction, -previousRay->hit_surface->normal))), 5);
+						if (generateRandomValue() < R) // Reflect
+						{
+							previousRay = perfectReflection(previousRay);
+						}
+						else // Refract into object
+						{
+							previousRay = perfectRefraction(previousRay, 1, 1.5);
+						}
+					}
+					else if (previousRay->currentRefractiveMedium == 1.5) // Inside glass object
+					{
+						double R = R0 + (1 - R0) * pow((1 - (glm::dot(previousRay->direction, previousRay->hit_surface->normal))), 5);
+						//std::cout << "Inside object";
+						double angle = acos(glm::dot(previousRay->direction, previousRay->hit_surface->normal));
+
+						if (1.5 * sin(angle) > 1.0) // If total internal reflection, reflect
+						{
+							previousRay = perfectReflection(previousRay);
+							previousRay->currentRefractiveMedium = 1.5;
+						}
+						else // Perform russian roulette to determine whether to reflect or refract out of the object
+						{
+
+							if (generateRandomValue() < R) { // Reflect
+
+								previousRay = perfectReflection(previousRay);
+								previousRay->currentRefractiveMedium = 1.5;
+							}
+							else // Refract out of the object
+							{
+								previousRay = perfectRefraction(previousRay, 1.5, 1);
+							}
+						}
+					}
+				}
+		}
+	}
+
+		void shootNextRay(Ray& firstRay) {
 			//std::cout << i << "\n";
 			Ray* previousRay = &firstRay;
 			while (true) {//previousRay->depth < 5000 tog bort att vi dödar ray paths då det inte funkar med reflective/refractive ytor
@@ -174,9 +305,7 @@
 								closestSurface = tri;
 
 							}
-							if (photonRay && t > epsilon) {
-								hitSurfaces.push_back(std::pair(t, tri));
-							}
+							
 						}
 					}
 					else if(typeid(*obj) == typeid(Rectangle)) {
@@ -186,9 +315,8 @@
 								closestT = t;
 								closestSurface = tri;
 							}
-							if (photonRay && t > epsilon) {
-								hitSurfaces.push_back(std::pair(t, tri));
-							}
+							
+							
 						}
 					}
 					else {
@@ -197,21 +325,14 @@
 							closestT = t;
 							closestSurface = obj;
 						}
-						if (photonRay && t > epsilon) {
-							hitSurfaces.push_back(std::pair(t, obj));
-						}
+						
 					}
 					
 					
-
+					
 				}
-				//TODO: just nu så skickar vi bara tillbaka 1 av två t för sphere och tetrahydron, vilken inte funkar för shadowPhotons. Måste fixas!
-				if (photonRay) {
-					std::sort(hitSurfaces.begin(), hitSurfaces.begin());
-					for (size_t q = 1; q < std::size(hitSurfaces); q++) {
-						shadowPhotons.push_back(new Photon(previousRay->start_point + hitSurfaces[q].first * previousRay->direction, glm::dvec3(0), glm::dvec3(0), 1));
-					}
-				}
+				//TODO: just nu så skickar vi bara tillbaka 1 av två t för sphere och tetrahydron, vilken inte funkar för shadowPhotons. Måste fixas! :: Har fixats, ska testas.
+				
 				//TODO: Måste fixa causticRays samt GlobalRays. Gör Global först, då de nästan är klara.
 				//För att göra causticRays måste vi fixa area intersection med spheres. 
 
@@ -299,9 +420,7 @@
 			}
 
 			// Traverse raypath from last ray to pixel
-			if (photonRay) {
-				return;
-			}
+			
 			Ray* rayPath = previousRay;
 			if (rayPath->hit_surface->surfaceID != 0) {
 				rayPath->radiance = calculateDirectIllumination(rayPath);
@@ -359,7 +478,7 @@
 
 				}
 				double A = glm::length(e1) * glm::length(e2);
-				radiance *= A*10/M_PI ;
+				radiance *= A*lights[0]->color/M_PI ;
 			}
 			
 
@@ -390,7 +509,7 @@
 			
 			//Create image-matrix from raytrace
 			auto start = std::chrono::high_resolution_clock::now();
-
+			initializeGlobalPhotons();
 			int samples = 50;
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
@@ -415,7 +534,7 @@
 						
 					}
 					finalCol /= samples;
-					row.push_back(finalCol); //TODO: replace with generateRay
+					row.push_back(finalCol); 
 					//row.push_back((y % 2 == 0 ? glm::dvec3(0, 0, 0) : glm::dvec3(255, 255, 255))); //TODO: replace with generateRay
 				}
 				frameBuffer.push_back(row);

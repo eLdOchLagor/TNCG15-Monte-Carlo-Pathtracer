@@ -12,7 +12,7 @@ public:
 		isBoundry = isB;
 	}
 
-	double surfaceIntersectionTest(Ray& r) override {
+	double surfaceIntersectionTest(Ray& r, const bool shadowPhoton = false) override {
 		double c1 = glm::dot(r.direction, r.direction);
 		double c2 = 2.0 * glm::dot(r.direction, r.start_point - center);
 		double c3 = glm::dot(r.start_point - center, r.start_point - center) - radius * radius;

@@ -13,8 +13,8 @@
 
 int main()
 {
-	const int imageWidth = 200;
-	const int imageHeight = 200;
+	const int imageWidth = 400;
+	const int imageHeight = 400;
 	const glm::dvec3 cam_pos(0, 0, 0);
 	const glm::dvec3 cam_up(0,0,1);
 	const glm::dvec3 cam_forward(1,0,0);
@@ -71,7 +71,7 @@ int main()
 	//scene.push_back(test);
 	
 	//Lights ----------------------------------------------------------------------------------------
-	Rectangle* light1 = new Rectangle(glm::dvec3(8, -2, 4.99), glm::dvec3(8, 2, 4.99), glm::dvec3(11, 2, 4.99), glm::dvec3(11, -2, 4.99), glm::dvec3(15.0, 15.0, 15.0), 0, 0, true);
+	Rectangle* light1 = new Rectangle(glm::dvec3(8, -2, 4.99), glm::dvec3(8, 2, 4.99), glm::dvec3(11, 2, 4.99), glm::dvec3(11, -2, 4.99), glm::dvec3(1.0, 1.0, 1.0), 0, 0, true);
 	lights.push_back(light1);
 	scene.push_back(light1);
 	//-----------------------------------------------------------------------------------------------

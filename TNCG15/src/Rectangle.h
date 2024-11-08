@@ -7,6 +7,7 @@
 #include <span>
 #include <math.h>
 #include "Polygon.h"
+#include "Triangle.h"
 
 
 	class Rectangle : public Polygon{
@@ -34,11 +35,11 @@
 
 		}
 
-		double surfaceIntersectionTest(Ray& r) override {
+		double surfaceIntersectionTest(Ray& r, const bool shadowPhoton = false) override {
 
 			std::vector<double> intersectedSurface;
 			for (Triangle* temp : triangles) {
-				intersectedSurface.push_back(temp->surfaceIntersectionTest(r));
+				intersectedSurface.push_back(temp->surfaceIntersectionTest(r,shadowPhoton));
 			}
 
 			double closestT = -1;

@@ -23,13 +23,13 @@ public:
 		isBoundry = isB;
 	}
 
-	double surfaceIntersectionTest(Ray& r) override {
+	double surfaceIntersectionTest(Ray& r,const bool shadowPhoton = false) override {
 
 		glm::dvec3 d = glm::normalize(r.direction);
 		glm::dvec3 s = r.start_point;
 
 		// If negative, then the surface is visible for the ray
-		if (glm::dot(d, normal) < 0.0)
+		if (glm::dot(d, normal) < 0.0 || shadowPhoton)
 		{
 
 			glm::dvec3 c1 = verticies[1] - verticies[0];

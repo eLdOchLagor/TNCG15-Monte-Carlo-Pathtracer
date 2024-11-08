@@ -43,17 +43,18 @@ public:
 		triangles.push_back(tri4);
 	}
 
-	double surfaceIntersectionTest(Ray& r) override {
+	double surfaceIntersectionTest(Ray& r,const bool shadowPhoton = false) override {
 		std::vector<double> intersectedSurface;
 		for (Triangle* temp : triangles) {
-			intersectedSurface.push_back(temp->surfaceIntersectionTest(r));
+			intersectedSurface.push_back(temp->surfaceIntersectionTest(r,shadowPhoton));
 		}
 
 		double closestT = -1;
 		for (double t : intersectedSurface) {
-			if ((closestT < 0.0 || t < closestT) && t>1e-6) {
+			if ((closestT < 0.0 || t < closestT && !shadowPhoton) && t>1e-6) {
 				closestT = t;
 			}
+			
 		}
 
 		return closestT;

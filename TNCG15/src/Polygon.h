@@ -16,7 +16,7 @@
 		double reflectance;
 		bool isBoundry;
 
-		virtual double surfaceIntersectionTest(Ray& r) = 0;
+		virtual double surfaceIntersectionTest(Ray& r, const bool shadowPhoton = false) = 0;
 		
 	protected:
 		
