@@ -124,7 +124,7 @@
 			return newRay;
 		}
 
-		void initializeGlobalPhotons() {
+		/*void initializeGlobalPhotons() {
 			int N = 100000;
 
 			glm::dvec3 e1 = lights[0]->verticies[1] - lights[0]->verticies[0];
@@ -149,15 +149,15 @@
 				
 				Ray* globalPhotonRay = new Ray(y, directionVector, glm::dvec3(16 * M_PI / N));
 
-				shootGlobalPhoton(*globalPhotonRay);
+				//shootGlobalPhoton(*globalPhotonRay);
 				
 				
 				
 			}
 			std::cout << std::size(shadowPhotons) << "\n";
 			std::cout << std::size(globalPhotons);
-		}
-		void shootGlobalPhoton(Ray& r) {
+		}*/
+		/*void shootGlobalPhoton(Ray& r) {
 			Ray* previousRay = &r;
 			while (true) {
 				Polygon* closestSurface = nullptr;
@@ -284,8 +284,8 @@
 						}
 					}
 				}
-		}
-	}
+			}
+		}*/
 
 		void shootNextRay(Ray& firstRay) {
 			//std::cout << i << "\n";
@@ -509,7 +509,7 @@
 			
 			//Create image-matrix from raytrace
 			auto start = std::chrono::high_resolution_clock::now();
-			initializeGlobalPhotons();
+			//initializeGlobalPhotons();
 			int samples = 50;
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
