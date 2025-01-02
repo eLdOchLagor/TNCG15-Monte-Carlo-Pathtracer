@@ -14,19 +14,23 @@
 #include <cstdlib>
 #include <queue>
 #include <vector>
+#include <glm/glm.hpp>
 
 namespace Kdtree {
 
 typedef std::vector<double> CoordPoint;
+typedef glm::dvec3 flux;
 typedef std::vector<double> DoubleVector;
 
 // for passing points to the constructor of kdtree
 struct KdNode {
   CoordPoint point;
+  flux flux;
   void* data;
   int index;
-  KdNode(const CoordPoint& p, void* d = NULL, int i = -1) {
+  KdNode(const CoordPoint& p, const glm::dvec3& theFlux, void* d = NULL, int i = -1) {
     point = p;
+    flux = theFlux;
     data = d;
     index = i;
   }

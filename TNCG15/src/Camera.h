@@ -42,6 +42,11 @@
 		std::vector<Photon*> shadowPhotons;
 		Kdtree::KdNodeVector causticNodes;
 
+		struct Caustic {
+			std::vector<double> coordinates; // x, y, z
+			glm::dvec3 flux;         // associated flux
+		};
+
 		Camera(glm::dvec3 pos, glm::dvec3 fwd, glm::dvec3 up, double fov, int width, int height, std::vector<Polygon*> obj, std::vector<Polygon*> sceObj, std::vector<Polygon*> lightObj) : position(pos), forward(fwd), fov(fov), widthPixels{ width }, heightPixels{ height }, objects(obj), sceneObjects{sceObj}, lights{lightObj} {
 			aspectRatio = (double)width / height;
 			right = glm::normalize(glm::cross(forward, up));
@@ -177,19 +182,21 @@
 				double t = generateRandomValue();
 				
 				glm::dvec3 M = glm::dvec3(lights[0]->verticies[0]) + s * e1 + t * e2;
-				glm::dvec3 flux_causticPhoton = calculate_caustic_flux(M, C, r_0)/static_cast<double>(N);
+				glm::dvec3 flux_causticPhoton = calculate_caustic_flux(M, C, r_0)/static_cast<double>(N); // TODO: Dubbelkolla N
 				glm::dvec3 x_e = caluclate_point_on_sphere(M, C, r_0);
 			
 				Ray* causticPhotonRay = new Ray(M, x_e - M, flux_causticPhoton);
 				shootCausticPhoton(*causticPhotonRay);
-				std::vector<double> point(3);
-				point[0] = causticPhotonRay->end_point.x;
-				point[1] = causticPhotonRay->end_point.y;
-				point[2] = causticPhotonRay->end_point.z;
-				causticNodes.push_back(Kdtree::KdNode(point));
+
+				Caustic point;
+				point.coordinates.push_back(causticPhotonRay->end_point.x);
+				point.coordinates.push_back(causticPhotonRay->end_point.y);
+				point.coordinates.push_back(causticPhotonRay->end_point.z);
+				point.flux = flux_causticPhoton;
+
+				causticNodes.push_back(Kdtree::KdNode(point.coordinates, point.flux));
 
 
-				// Add causticPhoton to kd-tree
 
 			}
 
@@ -298,137 +305,8 @@
 			}
 
 		}
-		/*void shootGlobalPhoton(Ray& r) {
-			Ray* previousRay = &r;
-			while (true) {
-				Polygon* closestSurface = nullptr;
-				std::vector<std::pair<double, Polygon*>> hitSurfaces;
 
-				for (Polygon* obj : objects)
-				{
-					if (typeid(*obj) == typeid(Tetrahedron)) {
-						for (Triangle* tri : dynamic_cast<Tetrahedron*>(obj)->triangles) {
-							double t = tri->surfaceIntersectionTest(*previousRay, true);
-							if (t > epsilon) {
-								hitSurfaces.push_back(std::pair(t, tri));
-							}					
-						}
-					}
-					else if (typeid(*obj) == typeid(Rectangle)) {
-						for (Triangle* tri : dynamic_cast<Rectangle*>(obj)->triangles) {
-							double t = tri->surfaceIntersectionTest(*previousRay, true);
-							if (t > epsilon) {
-								hitSurfaces.push_back(std::pair(t, tri));
-							}
-
-						}
-
-					
-					}
-				else {
-					double t = obj->surfaceIntersectionTest(*previousRay);
-					if (t > epsilon) {
-						hitSurfaces.push_back(std::pair(t, obj));
-					}
-					if (t > epsilon) {	
-						Ray* tmpRay = new Ray(previousRay->end_point = previousRay->start_point + t * previousRay->direction, previousRay->direction, previousRay->radiance);
-						double t_behind = obj->surfaceIntersectionTest(*tmpRay);
-						if (t_behind > epsilon) {
-							hitSurfaces.push_back(std::pair(t_behind, obj));
-						}
-					}
-				}
-
-				
-
-			}
-				std::sort(hitSurfaces.begin(), hitSurfaces.begin());
-				previousRay->hit_surface = hitSurfaces[0].second;
-				previousRay->end_point = previousRay->start_point + hitSurfaces[0].first * previousRay->direction;
-				if (previousRay->depth == 0 && (previousRay->hit_surface->surfaceID == 2 || previousRay->hit_surface->surfaceID == 1)) {
-					for (size_t q = 1; q < std::size(hitSurfaces); q++) {
-						shadowPhotons.push_back(new Photon(previousRay->start_point + hitSurfaces[q].first * previousRay->direction, glm::dvec3(0), glm::dvec3(0), 1));
-						//std::cout << q;
-					}
-				}
-				
-
-				if (previousRay->hit_surface->surfaceID == 0) { // If ray hits lightsource
-					//globalPhotons.push_back(new Photon(previousRay->end_point, previousRay->direction, previousRay->radiance, 0));
-					break;
-				}
-				else if (previousRay->hit_surface->surfaceID == 1) { // If ray hits a mirror
-					previousRay = perfectReflection(previousRay);
-				}
-
-				else if (previousRay->hit_surface->surfaceID == 2) { // If ray hits a diffuse reflector
-					double Roh = previousRay->hit_surface->reflectance;
-
-					double randomValue1 = generateRandomValue();
-					double randomValue2 = generateRandomValue();
-
-					double randInclination = acos(sqrt(1 - randomValue1));
-					double randAzimuth = 2 * M_PI * randomValue2;
-					double rr = randAzimuth / Roh;
-
-					if (rr <= 2 * M_PI) {
-						previousRay = diffuseReflection(previousRay, randAzimuth, randInclination);
-					}
-					//If we hit a diffuse surface and russian roulette determines that the ray is killed then thoust is the final if-statement determening 
-					//the destiny of the radiance.
-					else {
-						//TODO: kolla så att fluxen stämmer
-						globalPhotons.push_back(new Photon(previousRay->end_point, previousRay->direction, previousRay->radiance, 0));
-						break;
-					}
-				}
-				else if (previousRay->hit_surface->surfaceID == 3) // If ray hits a transparent object
-				{
-					double R0 = (1 - 1.5) / (1 + 1.5) * (1 - 1.5) / (1 + 1.5); // Works both ways with n1, n2
-					//double R = R0 + (1 - R0) * pow((1 - glm::dot(previousRay->direction, previousRay->hit_surface->normal)), 5); // Chance to reflect, derived from Schlick's formula
-
-					if (previousRay->currentRefractiveMedium == 1.0) { // Hitting object on the outside
-
-						double R = R0 + (1 - R0) * pow((1 - (glm::dot(previousRay->direction, -previousRay->hit_surface->normal))), 5);
-						if (generateRandomValue() < R) // Reflect
-						{
-							previousRay = perfectReflection(previousRay);
-						}
-						else // Refract into object
-						{
-							previousRay = perfectRefraction(previousRay, 1, 1.5);
-						}
-					}
-					else if (previousRay->currentRefractiveMedium == 1.5) // Inside glass object
-					{
-						double R = R0 + (1 - R0) * pow((1 - (glm::dot(previousRay->direction, previousRay->hit_surface->normal))), 5);
-						//std::cout << "Inside object";
-						double angle = acos(glm::dot(previousRay->direction, previousRay->hit_surface->normal));
-
-						if (1.5 * sin(angle) > 1.0) // If total internal reflection, reflect
-						{
-							previousRay = perfectReflection(previousRay);
-							previousRay->currentRefractiveMedium = 1.5;
-						}
-						else // Perform russian roulette to determine whether to reflect or refract out of the object
-						{
-
-							if (generateRandomValue() < R) { // Reflect
-
-								previousRay = perfectReflection(previousRay);
-								previousRay->currentRefractiveMedium = 1.5;
-							}
-							else // Refract out of the object
-							{
-								previousRay = perfectRefraction(previousRay, 1.5, 1);
-							}
-						}
-					}
-				}
-			}
-		}*/
-
-		void shootNextRay(Ray& firstRay,const Kdtree::KdTree& KDtree) {
+		void shootNextRay(Ray& firstRay, Kdtree::KdTree& KDtree) {
 			//std::cout << i << "\n";
 			Ray* previousRay = &firstRay;
 			while (true) {//previousRay->depth < 5000 tog bort att vi dödar ray paths då det inte funkar med reflective/refractive ytor
@@ -579,12 +457,33 @@
 					rayPath->previous_ray->radiance = glm::dvec3(rayPath->previous_ray->hit_surface->color.r * rayPath->radiance.r,
 						rayPath->previous_ray->hit_surface->color.g * rayPath->radiance.g,
 						rayPath->previous_ray->hit_surface->color.b * rayPath->radiance.b) +
-						calculateDirectIllumination(rayPath->previous_ray);
+						calculateDirectIllumination(rayPath->previous_ray) + calculateCausticContribution(rayPath, KDtree);
+
 					
 					rayPath = rayPath->previous_ray;
 				}
 			}
 			
+		}
+
+		glm::dvec3 calculateCausticContribution(Ray* ray, Kdtree::KdTree& KDtree) {
+			Kdtree::KdNodeVector result;
+
+			std::vector<double> point(3);
+			point[0] = ray->end_point.x;
+			point[1] = ray->end_point.y;
+			point[2] = ray->end_point.z;
+
+			KDtree.range_nearest_neighbors(point, 0.2, &result);
+
+			glm::dvec3 totalFlux = glm::dvec3(0.0);
+			for (auto temp : result)
+			{
+				totalFlux += temp.flux;
+			}
+			//std::cout << result.size() << "\n";
+			//std::cout << totalFlux.x << ", " << totalFlux.y << ", " << totalFlux.z << "\n";
+			return totalFlux;
 		}
 
 		glm::dvec3 calculateDirectIllumination(Ray* ray) {
