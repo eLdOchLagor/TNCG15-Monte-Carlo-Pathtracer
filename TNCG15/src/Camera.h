@@ -133,9 +133,9 @@
 		}
 		glm::dvec3 calculate_caustic_flux(const glm::dvec3& M,const glm::dvec3& C,const double& r_0) {
 			glm::dvec3 d = M - C;
-			glm::dvec3 G_m = glm::dot(glm::dvec3(0, 0, -1), (-d / glm::length(d)))/(d*d);
-			glm::dvec3 A_s = glm::dvec3(M_PI*r_0) * G_m;
-			glm::dvec3 flux_emitted = glm::dvec3(8) * G_m * A_s;
+			double G_m = glm::dot(glm::dvec3(0, 0, -1), (-d / glm::length(d)))/(glm::dot(d,d));
+			double A_s = M_PI*r_0 * G_m;
+			glm::dvec3 flux_emitted = glm::dvec3(6 * G_m * A_s);
 			
 			return flux_emitted;
 		}
@@ -182,6 +182,7 @@
 				double t = generateRandomValue();
 				
 				glm::dvec3 M = glm::dvec3(lights[0]->verticies[0]) + s * e1 + t * e2;
+				
 				glm::dvec3 flux_causticPhoton = calculate_caustic_flux(M, C, r_0)/static_cast<double>(N); // TODO: Dubbelkolla N
 				glm::dvec3 x_e = caluclate_point_on_sphere(M, C, r_0);
 			
@@ -480,6 +481,7 @@
 			for (auto temp : result)
 			{
 				totalFlux += temp.flux;
+				//std::cout << ", " << temp.flux.x << ", " << temp.flux.y << ", " << temp.flux.z << "\n";
 			}
 			//std::cout << result.size() << "\n";
 			//std::cout << totalFlux.x << ", " << totalFlux.y << ", " << totalFlux.z << "\n";
