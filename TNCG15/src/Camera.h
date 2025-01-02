@@ -15,6 +15,8 @@
 #include <algorithm>
 #include "Photon.h"
 #include "Sphere.h"
+#include "kdtree.hpp"
+#include <cstdlib>
 
 	class Camera
 	{
@@ -38,7 +40,7 @@
 		//TODO: Skapa ett KD-Tree för de olika typerna av photonerna. 
 		std::vector<Photon*> globalPhotons;
 		std::vector<Photon*> shadowPhotons;
-		std::vector<Photon*> causticPhotons;
+		Kdtree::KdNodeVector causticNodes;
 
 		Camera(glm::dvec3 pos, glm::dvec3 fwd, glm::dvec3 up, double fov, int width, int height, std::vector<Polygon*> obj, std::vector<Polygon*> sceObj, std::vector<Polygon*> lightObj) : position(pos), forward(fwd), fov(fov), widthPixels{ width }, heightPixels{ height }, objects(obj), sceneObjects{sceObj}, lights{lightObj} {
 			aspectRatio = (double)width / height;
@@ -152,7 +154,7 @@
 		}
 
 		void initializeCausticPhotons() {
-			int N = 100000;
+			const int N = 100000;
 
 			glm::dvec3 e1 = lights[0]->verticies[1] - lights[0]->verticies[0];
 			glm::dvec3 e2 = lights[0]->verticies[3] - lights[0]->verticies[0];
@@ -180,10 +182,17 @@
 			
 				Ray* causticPhotonRay = new Ray(M, x_e - M, flux_causticPhoton);
 				shootCausticPhoton(*causticPhotonRay);
+				std::vector<double> point(3);
+				point[0] = causticPhotonRay->end_point.x;
+				point[1] = causticPhotonRay->end_point.y;
+				point[2] = causticPhotonRay->end_point.z;
+				causticNodes.push_back(Kdtree::KdNode(point));
+
 
 				// Add causticPhoton to kd-tree
 
 			}
+
 			std::cout << std::size(shadowPhotons) << "\n";
 			std::cout << std::size(globalPhotons);
 		}
@@ -635,13 +644,30 @@
 			shadowRay = nullptr;
 			return false;  // Light is visible
 		}
-
+		void print_nodes(const Kdtree::KdNodeVector& nodes) {
+			size_t i, j;
+			for (i = 0; i < nodes.size(); ++i) {
+				if (i > 0)
+					std::cout << " ";
+				std::cout << "(";
+				for (j = 0; j < nodes[i].point.size(); j++) {
+					if (j > 0)
+						std::cout << ",";
+					std::cout << nodes[i].point[j];
+				}
+				std::cout << ")";
+			}
+			std::cout << std::endl;
+		}
 		void render() {
 			std::vector<std::vector<glm::dvec3>> frameBuffer;
 			
 			//Create image-matrix from raytrace
 			auto start = std::chrono::high_resolution_clock::now();
-			//initializeGlobalPhotons();
+			initializeCausticPhotons();
+			Kdtree::KdTree tree(&causticNodes);
+			std::cout << "Points in kd-tree\n";
+			print_nodes(tree.allnodes);
 			int samples = 50;
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
