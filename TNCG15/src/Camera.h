@@ -14,6 +14,7 @@
 #include "Tetrahedron.h"
 #include <algorithm>
 #include "Photon.h"
+#include "Sphere.h"
 
 	class Camera
 	{
@@ -123,40 +124,69 @@
 
 			return newRay;
 		}
+		glm::dvec3 calculate_caustic_flux(const glm::dvec3& M,const glm::dvec3& C,const double& r_0) {
+			glm::dvec3 d = M - C;
+			glm::dvec3 G_m = glm::dot(glm::dvec3(0, 0, -1), (-d / glm::length(d)))/(d*d);
+			glm::dvec3 A_s = glm::dvec3(M_PI*r_0) * G_m;
+			glm::dvec3 flux_emitted = glm::dvec3(8) * G_m * A_s;
+			
+			return flux_emitted;
+		}
 
-		/*void initializeGlobalPhotons() {
+		glm::dvec3 caluclate_point_on_sphere(const glm::dvec3& M,const glm::dvec3& C,const double& r_0) {
+
+
+			glm::dvec3 z_l = glm::normalize(M - C);
+			glm::dvec3 y_l = glm::normalize(glm::cross(z_l, glm::dvec3(1.0, 0.0, 0.0)));
+			glm::dvec3 x_l = glm::cross(y_l, z_l);
+
+			double randomValueAz = generateRandomValue();
+			double randomValueR = generateRandomValue();
+			double randAzimuth = 2 * M_PI * randomValueAz;
+			double randRadius = randomValueR * r_0;
+
+			double a = randRadius * cos(randAzimuth);
+			double b = randRadius * sin(randAzimuth);
+
+			return glm::dvec3(C + a * x_l + b * y_l);
+		}
+
+		void initializeCausticPhotons() {
 			int N = 100000;
 
 			glm::dvec3 e1 = lights[0]->verticies[1] - lights[0]->verticies[0];
 			glm::dvec3 e2 = lights[0]->verticies[3] - lights[0]->verticies[0];
 
 			
+			Sphere* sphere;
 
+			for (Polygon* obj : objects)
+			{
+				if (typeid(*obj) == typeid(Sphere) && obj->surfaceID == 3) {
+					sphere = dynamic_cast<Sphere*>(obj);
+				}
+			}
+			glm::dvec3 C = sphere->center;
+			double r_0 = sphere->radius;
 			
 
 			for (size_t n = 0; n < N; n++) {
 				double s = generateRandomValue();
 				double t = generateRandomValue();
-				double randomValuex = generateRandomValue(-1,1);
-				double randomValuey = generateRandomValue(-1,1);
-				double randomValuez = generateRandomValue();
+				
+				glm::dvec3 M = glm::dvec3(lights[0]->verticies[0]) + s * e1 + t * e2;
+				glm::dvec3 flux_causticPhoton = calculate_caustic_flux(M, C, r_0)/static_cast<double>(N);
+				glm::dvec3 x_e = caluclate_point_on_sphere(M, C, r_0);
+				double v_i = generateRandomValue();
+				double r_i = r_0 * sqrt(v_i);
 
-				glm::dvec3 directionVector = glm::normalize(glm::dvec3(randomValuex, randomValuey, randomValuez));
-				if (glm::dot(lights[0]->normal, directionVector) < 0) {
-					directionVector *= -1;
-				}
-				glm::dvec3 y = glm::dvec3(lights[0]->verticies[0]) + s * e1 + t * e2;
-				
-				Ray* globalPhotonRay = new Ray(y, directionVector, glm::dvec3(16 * M_PI / N));
+			
+				//Ray* globalPhotonRay = new Ray(y, directionVector, glm::dvec3(16 * M_PI / N));
 
-				//shootGlobalPhoton(*globalPhotonRay);
-				
-				
-				
 			}
 			std::cout << std::size(shadowPhotons) << "\n";
 			std::cout << std::size(globalPhotons);
-		}*/
+		}
 		/*void shootGlobalPhoton(Ray& r) {
 			Ray* previousRay = &r;
 			while (true) {
