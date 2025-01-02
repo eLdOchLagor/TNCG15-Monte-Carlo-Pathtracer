@@ -428,7 +428,7 @@
 			}
 		}*/
 
-		void shootNextRay(Ray& firstRay) {
+		void shootNextRay(Ray& firstRay,const Kdtree::KdTree& KDtree) {
 			//std::cout << i << "\n";
 			Ray* previousRay = &firstRay;
 			while (true) {//previousRay->depth < 5000 tog bort att vi dödar ray paths då det inte funkar med reflective/refractive ytor
@@ -665,9 +665,9 @@
 			//Create image-matrix from raytrace
 			auto start = std::chrono::high_resolution_clock::now();
 			initializeCausticPhotons();
-			Kdtree::KdTree tree(&causticNodes);
-			std::cout << "Points in kd-tree\n";
-			print_nodes(tree.allnodes);
+			Kdtree::KdTree KDtree(&causticNodes);
+			//std::cout << "Points in kd-tree\n";
+			//print_nodes(tree.allnodes);
 			int samples = 50;
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
@@ -683,7 +683,7 @@
 						double v = (1.0 - (z + v_offset) / heightPixels) * imagePlaneHeight - imagePlaneHeight / 2;
 						
 						Ray* firstRay = shootStartRay(glm::dvec3(-1.0, 0.0, 0.0), u, v); // Have to adjust eye pos based on camera position
-						shootNextRay(*firstRay);
+						shootNextRay(*firstRay,KDtree);
 
 						//std::cout << firstRay.radiance.x << " " << firstRay.radiance.y << " " << firstRay.radiance.z << "\n";
 						
