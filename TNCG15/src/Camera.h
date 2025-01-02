@@ -134,8 +134,8 @@
 		glm::dvec3 calculate_caustic_flux(const glm::dvec3& M,const glm::dvec3& C,const double& r_0) {
 			glm::dvec3 d = M - C;
 			double G_m = glm::dot(glm::dvec3(0, 0, -1), (-d / glm::length(d)))/(glm::dot(d,d));
-			double A_s = M_PI*r_0 * G_m;
-			glm::dvec3 flux_emitted = glm::dvec3(6 * G_m * A_s);
+			double A_s = M_PI*r_0*r_0 * G_m;
+			glm::dvec3 flux_emitted = glm::dvec3(6 *G_m* A_s);
 			
 			return flux_emitted;
 		}
@@ -201,8 +201,8 @@
 
 			}
 
-			std::cout << std::size(shadowPhotons) << "\n";
-			std::cout << std::size(globalPhotons);
+			std::cout << causticNodes.size();
+			//std::cout << std::size(globalPhotons);
 		}
 
 		void shootCausticPhoton(Ray& r) {
