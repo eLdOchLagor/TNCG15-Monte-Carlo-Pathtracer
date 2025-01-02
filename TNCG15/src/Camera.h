@@ -143,7 +143,7 @@
 			double randomValueAz = generateRandomValue();
 			double randomValueR = generateRandomValue();
 			double randAzimuth = 2 * M_PI * randomValueAz;
-			double randRadius = randomValueR * r_0;
+			double randRadius = sqrt(randomValueR) * r_0;
 
 			double a = randRadius * cos(randAzimuth);
 			double b = randRadius * sin(randAzimuth);
@@ -177,15 +177,117 @@
 				glm::dvec3 M = glm::dvec3(lights[0]->verticies[0]) + s * e1 + t * e2;
 				glm::dvec3 flux_causticPhoton = calculate_caustic_flux(M, C, r_0)/static_cast<double>(N);
 				glm::dvec3 x_e = caluclate_point_on_sphere(M, C, r_0);
-				double v_i = generateRandomValue();
-				double r_i = r_0 * sqrt(v_i);
-
 			
-				//Ray* globalPhotonRay = new Ray(y, directionVector, glm::dvec3(16 * M_PI / N));
+				Ray* causticPhotonRay = new Ray(M, x_e - M, flux_causticPhoton);
+				shootCausticPhoton(*causticPhotonRay);
+
+				// Add causticPhoton to kd-tree
 
 			}
 			std::cout << std::size(shadowPhotons) << "\n";
 			std::cout << std::size(globalPhotons);
+		}
+
+		void shootCausticPhoton(Ray& r) {
+			Ray* previousRay = &r;
+
+			while (true) {
+				double closestT = -1.0;
+				Polygon* closestSurface = nullptr;
+				std::vector<std::pair<double, Polygon*>> hitSurfaces;
+
+				for (Polygon* obj : objects)
+				{
+					if (typeid(*obj) == typeid(Tetrahedron)) {
+						for (Triangle* tri : dynamic_cast<Tetrahedron*>(obj)->triangles) {
+							double t = tri->surfaceIntersectionTest(*previousRay);
+							if (t > epsilon && (closestT < 0.0 || t < closestT)) {
+								closestT = t;
+								closestSurface = tri;
+
+							}
+
+						}
+					}
+					else if (typeid(*obj) == typeid(Rectangle)) {
+						for (Triangle* tri : dynamic_cast<Rectangle*>(obj)->triangles) {
+							double t = tri->surfaceIntersectionTest(*previousRay);
+							if (t > epsilon && (closestT < 0.0 || t < closestT)) {
+								closestT = t;
+								closestSurface = tri;
+							}
+
+
+						}
+					}
+					else {
+						double t = obj->surfaceIntersectionTest(*previousRay);
+						if (t > epsilon && (closestT < 0.0 || t < closestT)) {
+							closestT = t;
+							closestSurface = obj;
+						}
+					}
+				}
+				
+				previousRay->hit_surface = closestSurface;
+				previousRay->end_point = previousRay->start_point + closestT * previousRay->direction;
+				
+				if (previousRay->hit_surface->surfaceID == 0) { // If ray hits lightsource
+					previousRay->radiance = lights[0]->color;
+					break;
+				}
+
+				if (previousRay->hit_surface->surfaceID == 1) { // If ray hits a mirror
+					previousRay = perfectReflection(previousRay);
+				}
+				else if (previousRay->hit_surface->surfaceID == 2) { // If ray hits a diffuse reflector
+					break;
+				}
+				else if (previousRay->hit_surface->surfaceID == 3) // If ray hits a transparent object
+				{
+					double R0 = (1 - 1.5) / (1 + 1.5) * (1 - 1.5) / (1 + 1.5); // Works both ways with n1, n2
+					//double R = R0 + (1 - R0) * pow((1 - glm::dot(previousRay->direction, previousRay->hit_surface->normal)), 5); // Chance to reflect, derived from Schlick's formula
+
+					if (previousRay->currentRefractiveMedium == 1.0) { // Hitting object on the outside
+
+						double R = R0 + (1 - R0) * pow((1 - (glm::dot(previousRay->direction, -previousRay->hit_surface->normal))), 5);
+						if (generateRandomValue() < R) // Reflect
+						{
+							previousRay = perfectReflection(previousRay);
+						}
+						else // Refract into object
+						{
+							previousRay = perfectRefraction(previousRay, 1, 1.5);
+						}
+					}
+					else if (previousRay->currentRefractiveMedium == 1.5) // Inside glass object
+					{
+						double R = R0 + (1 - R0) * pow((1 - (glm::dot(previousRay->direction, previousRay->hit_surface->normal))), 5);
+						//std::cout << "Inside object";
+						double angle = acos(glm::dot(previousRay->direction, previousRay->hit_surface->normal));
+
+						if (1.5 * sin(angle) > 1.0) // If total internal reflection, reflect
+						{
+							previousRay = perfectReflection(previousRay);
+							previousRay->currentRefractiveMedium = 1.5;
+						}
+						else // Perform russian roulette to determine whether to reflect or refract out of the object
+						{
+
+							if (generateRandomValue() < R) { // Reflect
+
+								previousRay = perfectReflection(previousRay);
+								previousRay->currentRefractiveMedium = 1.5;
+							}
+							else // Refract out of the object
+							{
+								previousRay = perfectRefraction(previousRay, 1.5, 1);
+							}
+						}
+					}
+				}
+			}
+
 		}
 		/*void shootGlobalPhoton(Ray& r) {
 			Ray* previousRay = &r;
