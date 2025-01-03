@@ -13,8 +13,8 @@
 
 int main()
 {
-	const int imageWidth = 400;
-	const int imageHeight = 400;
+	const int imageWidth = 800;
+	const int imageHeight = 800;
 	const glm::dvec3 cam_pos(0, 0, 0);
 	const glm::dvec3 cam_up(0,0,1);
 	const glm::dvec3 cam_forward(1,0,0);
@@ -29,7 +29,7 @@ int main()
 	//scene.push_back(sphere2);
 	//sceneObjects.push_back(sphere2);
 
-	Sphere* sphere4 = new Sphere(glm::dvec3(8, 0, -3.5), 1, glm::dvec3(0.5, 0.2, 0.8), 3, 0);
+	Sphere* sphere4 = new Sphere(glm::dvec3(8, 4, -3), 1, glm::dvec3(0.5, 0.2, 0.8), 3, 0);
 	scene.push_back(sphere4);
 	sceneObjects.push_back(sphere4);
 

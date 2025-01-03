@@ -508,17 +508,8 @@
 		glm::dvec3 calculateCausticContribution(Ray* ray,Kdtree::KdTree& KDtree) {
 			//std::vector<kdtree_homemade::kd_Node*> photons;
 			//glm::dvec3 point = glm::dvec3(0);
-			double radius = 0.002;
-			Kdtree::KdNodeVector result;
-			std::vector<double> point(3);
-			
-			point[0] = ray->start_point.x;
-			point[1] = ray->start_point.y;
-			point[2] = ray->start_point.z;
-			
 			//KDtree.find_photons(photons, KDtree.root, point, 0.2);
-			KDtree.range_nearest_neighbors(point, radius, &result);
-			glm::dvec3 totalFlux = glm::dvec3(0.0);
+
 			/*for (kdtree_homemade::kd_Node* temp : photons)
 			{
 				totalFlux += temp->flux;
@@ -528,22 +519,29 @@
 			//if (photons.size() > 0) {
 				//std::cout << "\n";
 			//}
+			double radius = 0.2;
+			Kdtree::KdNodeVector result;
+			std::vector<double> point(3);
+			
+			point[0] = ray->start_point.x;
+			point[1] = ray->start_point.y;
+			point[2] = ray->start_point.z;
+			
+			
+			KDtree.range_nearest_neighbors(point, radius, &result);
+			glm::dvec3 totalFlux = glm::dvec3(0.0);
 			
 			for (auto& temp : result) {
 				totalFlux += temp.flux;
-				//std::cout << point[0] << ", " << point[1] << ", " << point[2] << "      " << temp.point[0] << ", " << temp.point[1] << ", " << temp.point[2] << "\n";
 			}
-			//std::cout << result.size() << "\n";
 			totalFlux /= (M_PI * radius * radius);
-			//std::cout << totalFlux.x << "\n";
-			//std::cout << result.size() << "\n";
-			//std::cout << totalFlux.x << ", " << totalFlux.y << ", " << totalFlux.z << "\n";
+			
 			return totalFlux;
 		}
 
 		glm::dvec3 calculateDirectIllumination(Ray* ray) {
 			glm::dvec3 radiance(0.0, 0.0, 0.0);
-			double N = 2;
+			double N = 5;
 			glm::dvec3 surfaceColor = ray->hit_surface->color;
 			for (Polygon* light : lights)
 			{
