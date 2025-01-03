@@ -25,17 +25,17 @@ int main()
 	std::vector<Polygon*> sceneObjects;
 
 	//Sphere* test = new Sphere(glm::dvec3(10, 0, 0), 1.0, glm::dvec3(0.2, 1.0, 0.2), 2, 0);
-	Sphere* sphere2 = new Sphere(glm::dvec3(9, -2, 2.5), 1.5, glm::dvec3(0.5, 0.2, 0.8), 1, 0.0); 
-	scene.push_back(sphere2);
-	sceneObjects.push_back(sphere2);
+	//Sphere* sphere2 = new Sphere(glm::dvec3(9, -2, 2.5), 1.5, glm::dvec3(0.5, 0.2, 0.8), 1, 0.0); 
+	//scene.push_back(sphere2);
+	//sceneObjects.push_back(sphere2);
 
-	Sphere* sphere4 = new Sphere(glm::dvec3(7, 0, -3.0), 1, glm::dvec3(0.5, 0.2, 0.8), 3, 0.0);
+	Sphere* sphere4 = new Sphere(glm::dvec3(8, 0, -2), 1, glm::dvec3(0.5, 0.2, 0.8), 3, 0);
 	scene.push_back(sphere4);
 	sceneObjects.push_back(sphere4);
 
-	Sphere* sphere3 = new Sphere(glm::dvec3(7, -3, -3.5), 1.5, glm::dvec3(0.2, 0.2, 1.0), 2, 1);
-	scene.push_back(sphere3);
-	sceneObjects.push_back(sphere3);
+	//Sphere* sphere3 = new Sphere(glm::dvec3(7, -3, -3.5), 1.5, glm::dvec3(0.2, 0.2, 1.0), 2, 1);
+	//scene.push_back(sphere3);
+	//sceneObjects.push_back(sphere3);
 
 	//Triangle* tetra1 = new Triangle(glm::dvec3(7, 2, -5), glm::dvec3(10, 2, -5), glm::dvec3(10, 0, -5), glm::dvec3(0.1, 1, 0.1), 2, 0.5);
 	//Triangle* tetra2 = new Triangle(glm::dvec3(7, 2, -5), glm::dvec3(10, 2, -3), glm::dvec3(10, 2, -5), glm::dvec3(0.1, 1, 0.1), 2, 0.5);
@@ -56,9 +56,13 @@ int main()
 	
 	//scene.push_back(sphere2);
 	//sceneObjects.push_back(sphere2);
-	Tetrahedron* tetra = new Tetrahedron(glm::dvec3(10,2,-3), glm::dvec3(10,2,-5), glm::dvec3(7, 2, -5), glm::dvec3(10, 0, -5), glm::dvec3(0.2, 1, 0.2), 2, 0.5, false);
-	scene.push_back(tetra);
-	sceneObjects.push_back(tetra);
+
+	//TODO: ha med i sista scenen.
+	//Tetrahedron* tetra = new Tetrahedron(glm::dvec3(10,4,-3), glm::dvec3(10,4,-5), glm::dvec3(7, 4, -5), glm::dvec3(7, 2, -5), glm::dvec3(0.2, 1, 0.2), 2, 0.5, false);
+	//scene.push_back(tetra);
+	//sceneObjects.push_back(tetra);
+
+
 	/*sceneObjects.push_back(sphere2);
 	scene.push_back(sphere2);
 	sceneObjects.push_back(sphere1);
@@ -71,7 +75,7 @@ int main()
 	//scene.push_back(test);
 	
 	//Lights ----------------------------------------------------------------------------------------
-	Rectangle* light1 = new Rectangle(glm::dvec3(5.5, -2, 4.99), glm::dvec3(5.5, 2, 4.99), glm::dvec3(8.5, 2, 4.99), glm::dvec3(8.5, -2, 4.99), glm::dvec3(1.0, 1.0, 1.0), 0, 0, true);
+	Rectangle* light1 = new Rectangle(glm::dvec3(6.5, -2, 4.99), glm::dvec3(6.5, 2, 4.99), glm::dvec3(9.5, 2, 4.99), glm::dvec3(9.5, -2, 4.99), glm::dvec3(1.0, 1.0, 1.0), 0, 0, true);
 	lights.push_back(light1);
 	scene.push_back(light1);
 	//-----------------------------------------------------------------------------------------------
@@ -96,9 +100,9 @@ int main()
 
 	// Walls ----------------------------------------------------------------------------------------
 	//bottom
-	Rectangle* wall1 = new Rectangle(glm::dvec3(-3, 0, 5), glm::dvec3(0, -6, 5), glm::dvec3(0, -6, -5), glm::dvec3(-3, 0, -5), glm::dvec3(1.0, 1.0, 1.0), 1, 0.5, true);
+	Rectangle* wall1 = new Rectangle(glm::dvec3(-3, 0, 5), glm::dvec3(0, -6, 5), glm::dvec3(0, -6, -5), glm::dvec3(-3, 0, -5), glm::dvec3(1.0, 1.0, 1.0), 2, 0.5, true);
 	Rectangle* wall2 = new Rectangle(glm::dvec3(0, -6, 5), glm::dvec3(10, -6, 5), glm::dvec3(10, -6, -5), glm::dvec3(0, -6, -5), glm::dvec3(0.1, 1.0, 1.0), 2, 0.5, true);
-	Rectangle* wall3 = new Rectangle(glm::dvec3(10, -6, 5), glm::dvec3(13, 0, 5), glm::dvec3(13, 0, -5), glm::dvec3(10, -6, -5), glm::dvec3(1.0, 0.2, 0.2), 2, 1, true); //Målvägg höger //looking at
+	Rectangle* wall3 = new Rectangle(glm::dvec3(10, -6, 5), glm::dvec3(13, 0, 5), glm::dvec3(13, 0, -5), glm::dvec3(10, -6, -5), glm::dvec3(1.0, 0.2, 0.2), 2, 0.5, true); //Målvägg höger //looking at
 	scene.push_back(wall1);
 	scene.push_back(wall2);
 	scene.push_back(wall3);

@@ -3,11 +3,13 @@
 #define _USE_MATH_DEFINES
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 
+
 #include "stb_image_write.h"
 #include <random>
 #include <cmath>
 #include <vector>
 #include <glm/glm.hpp>
+
 #include "Ray.h"
 #include <fstream>
 #include <chrono>
@@ -17,6 +19,7 @@
 #include "Sphere.h"
 #include "kdtree.hpp"
 #include <cstdlib>
+#include "kdtree_homemade.h"
 
 	class Camera
 	{
@@ -41,6 +44,7 @@
 		std::vector<Photon*> globalPhotons;
 		std::vector<Photon*> shadowPhotons;
 		Kdtree::KdNodeVector causticNodes;
+		std::vector<kdtree_homemade::kd_Node*> caustics_test;
 
 		struct Caustic {
 			std::vector<double> coordinates; // x, y, z
@@ -133,7 +137,7 @@
 		}
 		glm::dvec3 calculate_caustic_flux(const glm::dvec3& M,const glm::dvec3& C,const double& r_0) {
 			glm::dvec3 d = M - C;
-			double G_m = glm::dot(glm::dvec3(0, 0, -1), (-d / glm::length(d)))/(glm::dot(d,d));
+			double G_m = glm::dot(glm::dvec3(0, 0, -1), (-glm::normalize(d)))/(glm::dot(d,d));
 			double A_s = M_PI*r_0*r_0 * G_m;
 			glm::dvec3 flux_emitted = glm::dvec3(6 *G_m* A_s);
 			
@@ -145,15 +149,18 @@
 
 			glm::dvec3 z_l = glm::normalize(M - C);
 			glm::dvec3 y_l = glm::normalize(glm::cross(z_l, glm::dvec3(1.0, 0.0, 0.0)));
-			glm::dvec3 x_l = glm::cross(y_l, z_l);
-
+			glm::dvec3 x_l = glm::normalize(glm::cross(y_l, z_l));
+			
 			double randomValueAz = generateRandomValue();
-			double randomValueR = generateRandomValue();
-			double randAzimuth = 2 * M_PI * randomValueAz;
-			double randRadius = sqrt(randomValueR) * r_0;
+			double randomValueR = sqrt(generateRandomValue());
+			randomValueAz *= 2 * M_PI;
+			randomValueR *= r_0;
 
-			double a = randRadius * cos(randAzimuth);
-			double b = randRadius * sin(randAzimuth);
+		
+			double a = randomValueR * cos(randomValueAz);
+			double b = randomValueR * sin(randomValueAz);
+
+			
 
 			return glm::dvec3(C + a * x_l + b * y_l);
 		}
@@ -175,33 +182,47 @@
 			}
 			glm::dvec3 C = sphere->center;
 			double r_0 = sphere->radius;
+			//std::cout << C.x << "\n\n";
 			
-
+			glm::dvec3 M = glm::dvec3(lights[0]->verticies[0]) + 0.5 * e1 + 0.5 * e2;
+			glm::dvec3 flux_causticPhoton = calculate_caustic_flux(M, C, r_0) / static_cast<double>(N); // TODO: Dubbelkolla N
 			for (size_t n = 0; n < N; n++) {
 				double s = generateRandomValue();
 				double t = generateRandomValue();
 				
-				glm::dvec3 M = glm::dvec3(lights[0]->verticies[0]) + s * e1 + t * e2;
+				glm::dvec3 x_s = glm::dvec3(lights[0]->verticies[0]) + s * e1 + t * e2;
 				
-				glm::dvec3 flux_causticPhoton = calculate_caustic_flux(M, C, r_0)/static_cast<double>(N); // TODO: Dubbelkolla N
-				glm::dvec3 x_e = caluclate_point_on_sphere(M, C, r_0);
-			
+				
+				glm::dvec3 x_e = caluclate_point_on_sphere(x_s, C, r_0);
+				
+				
 				Ray* causticPhotonRay = new Ray(M, x_e - M, flux_causticPhoton);
+				
 				shootCausticPhoton(*causticPhotonRay);
-
+				while (causticPhotonRay->next_ray != nullptr) {
+					causticPhotonRay = causticPhotonRay->next_ray;
+				}
+				
 				Caustic point;
 				point.coordinates.push_back(causticPhotonRay->end_point.x);
 				point.coordinates.push_back(causticPhotonRay->end_point.y);
 				point.coordinates.push_back(causticPhotonRay->end_point.z);
 				point.flux = flux_causticPhoton;
 
+
 				causticNodes.push_back(Kdtree::KdNode(point.coordinates, point.flux));
+				glm::dvec3 points = glm::dvec3(point.coordinates[0], point.coordinates[1], point.coordinates[2]);
+				caustics_test.push_back(new kdtree_homemade::kd_Node(points, point.flux));
+
+				std::cout << flux_causticPhoton.x << ", " << flux_causticPhoton.y << ", " << flux_causticPhoton.z << "\n\n";
+
+				
 
 
 
 			}
-
-			std::cout << causticNodes.size();
+			//std::cout << std::size(caustics_test) << "\n\n";
+			//std::cout << causticNodes.size();
 			//std::cout << std::size(globalPhotons);
 		}
 
@@ -251,6 +272,7 @@
 				
 				if (previousRay->hit_surface->surfaceID == 0) { // If ray hits lightsource
 					previousRay->radiance = lights[0]->color;
+					
 					break;
 				}
 
@@ -258,15 +280,18 @@
 					previousRay = perfectReflection(previousRay);
 				}
 				else if (previousRay->hit_surface->surfaceID == 2) { // If ray hits a diffuse reflector
+					
+					
 					break;
 				}
 				else if (previousRay->hit_surface->surfaceID == 3) // If ray hits a transparent object
 				{
+					
 					double R0 = (1 - 1.5) / (1 + 1.5) * (1 - 1.5) / (1 + 1.5); // Works both ways with n1, n2
 					//double R = R0 + (1 - R0) * pow((1 - glm::dot(previousRay->direction, previousRay->hit_surface->normal)), 5); // Chance to reflect, derived from Schlick's formula
 
 					if (previousRay->currentRefractiveMedium == 1.0) { // Hitting object on the outside
-
+						
 						double R = R0 + (1 - R0) * pow((1 - (glm::dot(previousRay->direction, -previousRay->hit_surface->normal))), 5);
 						if (generateRandomValue() < R) // Reflect
 						{
@@ -274,17 +299,21 @@
 						}
 						else // Refract into object
 						{
+							
 							previousRay = perfectRefraction(previousRay, 1, 1.5);
+							
 						}
 					}
 					else if (previousRay->currentRefractiveMedium == 1.5) // Inside glass object
 					{
+						
 						double R = R0 + (1 - R0) * pow((1 - (glm::dot(previousRay->direction, previousRay->hit_surface->normal))), 5);
 						//std::cout << "Inside object";
 						double angle = acos(glm::dot(previousRay->direction, previousRay->hit_surface->normal));
 
 						if (1.5 * sin(angle) > 1.0) // If total internal reflection, reflect
 						{
+							
 							previousRay = perfectReflection(previousRay);
 							previousRay->currentRefractiveMedium = 1.5;
 						}
@@ -292,12 +321,14 @@
 						{
 
 							if (generateRandomValue() < R) { // Reflect
-
+								
 								previousRay = perfectReflection(previousRay);
 								previousRay->currentRefractiveMedium = 1.5;
 							}
 							else // Refract out of the object
 							{
+								
+								
 								previousRay = perfectRefraction(previousRay, 1.5, 1);
 							}
 						}
@@ -308,7 +339,7 @@
 		}
 
 		void shootNextRay(Ray& firstRay, Kdtree::KdTree& KDtree) {
-			//std::cout << i << "\n";
+			
 			Ray* previousRay = &firstRay;
 			while (true) {//previousRay->depth < 5000 tog bort att vi dödar ray paths då det inte funkar med reflective/refractive ytor
 				double closestT = -1.0;
@@ -450,15 +481,16 @@
 			while (rayPath->previous_ray != nullptr) {
 				if (rayPath->previous_ray->hit_surface->surfaceID == 1 || rayPath->previous_ray->hit_surface->surfaceID == 3) { // Mirror or transparent object
 					
-					rayPath->previous_ray->radiance = rayPath->radiance;
+					rayPath->previous_ray->radiance = rayPath->radiance ;
 					rayPath = rayPath->previous_ray;
 					
 				}
 				else { // If diffuse object
-					rayPath->previous_ray->radiance = glm::dvec3(rayPath->previous_ray->hit_surface->color.r * rayPath->radiance.r,
+					
+					rayPath->previous_ray->radiance = /*glm::dvec3(rayPath->previous_ray->hit_surface->color.r * rayPath->radiance.r,
 						rayPath->previous_ray->hit_surface->color.g * rayPath->radiance.g,
 						rayPath->previous_ray->hit_surface->color.b * rayPath->radiance.b) +
-						calculateDirectIllumination(rayPath->previous_ray) + calculateCausticContribution(rayPath, KDtree);
+						calculateDirectIllumination(rayPath->previous_ray) + */calculateCausticContribution(rayPath, KDtree);
 
 					
 					rayPath = rayPath->previous_ray;
@@ -467,22 +499,34 @@
 			
 		}
 
-		glm::dvec3 calculateCausticContribution(Ray* ray, Kdtree::KdTree& KDtree) {
+		glm::dvec3 calculateCausticContribution(Ray* ray,Kdtree::KdTree& KDtree) {
+			//std::vector<kdtree_homemade::kd_Node*> photons;
+			//glm::dvec3 point = glm::dvec3(0);
 			Kdtree::KdNodeVector result;
-
 			std::vector<double> point(3);
-			point[0] = ray->end_point.x;
-			point[1] = ray->end_point.y;
-			point[2] = ray->end_point.z;
-
+			
+			point[0] = ray->start_point.x;
+			point[1] = ray->start_point.y;
+			point[2] = ray->start_point.z;
+			
+			//KDtree.find_photons(photons, KDtree.root, point, 0.2);
 			KDtree.range_nearest_neighbors(point, 0.2, &result);
-
 			glm::dvec3 totalFlux = glm::dvec3(0.0);
-			for (auto temp : result)
+			/*for (kdtree_homemade::kd_Node* temp : photons)
 			{
+				totalFlux += temp->flux;
+				//std::cout << temp->flux.x << ", " << temp->flux.y << ", " << temp->flux.z << ",        " << totalFlux.x << ", " << totalFlux.y << ", " << totalFlux.z <<  "\n";
+				//std::cout << point.x <<", "<<point.y<<", "<<point.z<< "      " << temp->position.x << ", " << temp->position.y << ", " << temp->position.z << "\n";
+			}*/
+			//if (photons.size() > 0) {
+				//std::cout << "\n";
+			//}
+			
+			for (auto& temp : result) {
 				totalFlux += temp.flux;
-				//std::cout << ", " << temp.flux.x << ", " << temp.flux.y << ", " << temp.flux.z << "\n";
+				//std::cout << point[0] << ", " << point[1] << ", " << point[2] << "      " << temp.point[0] << ", " << temp.point[1] << ", " << temp.point[2] << "\n";
 			}
+			//std::cout << totalFlux.x << "\n";
 			//std::cout << result.size() << "\n";
 			//std::cout << totalFlux.x << ", " << totalFlux.y << ", " << totalFlux.z << "\n";
 			return totalFlux;
@@ -490,7 +534,7 @@
 
 		glm::dvec3 calculateDirectIllumination(Ray* ray) {
 			glm::dvec3 radiance(0.0, 0.0, 0.0);
-			double N = 15;
+			double N = 2;
 			glm::dvec3 surfaceColor = ray->hit_surface->color;
 			for (Polygon* light : lights)
 			{
@@ -561,17 +605,22 @@
 			std::cout << std::endl;
 		}
 		void render() {
+			
 			std::vector<std::vector<glm::dvec3>> frameBuffer;
 			
 			//Create image-matrix from raytrace
 			auto start = std::chrono::high_resolution_clock::now();
 			initializeCausticPhotons();
 			Kdtree::KdTree KDtree(&causticNodes);
+			kdtree_homemade::kdTree_homemade KDtree_homemade = kdtree_homemade::kdTree_homemade(caustics_test);
+			
+			KDtree.set_distance(2);
 			//std::cout << "Points in kd-tree\n";
 			//print_nodes(tree.allnodes);
 			int samples = 50;
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
+				
 				std::vector<glm::dvec3> row;
 				for (size_t y = 0; y < widthPixels; y++) {
 					glm::dvec3 finalCol (0.0, 0.0, 0.0); 
@@ -584,7 +633,7 @@
 						double v = (1.0 - (z + v_offset) / heightPixels) * imagePlaneHeight - imagePlaneHeight / 2;
 						
 						Ray* firstRay = shootStartRay(glm::dvec3(-1.0, 0.0, 0.0), u, v); // Have to adjust eye pos based on camera position
-						shootNextRay(*firstRay,KDtree);
+						shootNextRay(*firstRay, KDtree);
 
 						//std::cout << firstRay.radiance.x << " " << firstRay.radiance.y << " " << firstRay.radiance.z << "\n";
 						
