@@ -139,7 +139,7 @@
 			glm::dvec3 d = M - C;
 			double G_m = glm::dot(glm::dvec3(0, 0, -1), (-glm::normalize(d)))/(glm::dot(d,d));
 			double A_s = M_PI*r_0*r_0 * G_m;
-			glm::dvec3 flux_emitted = glm::dvec3(6 *G_m* A_s);
+			glm::dvec3 flux_emitted = glm::dvec3(8 *G_m* A_s);
 			
 			return flux_emitted;
 		}
@@ -185,7 +185,7 @@
 			//std::cout << C.x << "\n\n";
 			
 			glm::dvec3 M = glm::dvec3(lights[0]->verticies[0]) + 0.5 * e1 + 0.5 * e2;
-			glm::dvec3 flux_causticPhoton = calculate_caustic_flux(M, C, r_0) / static_cast<double>(N); // TODO: Dubbelkolla N
+			glm::dvec3 flux_causticPhoton = glm::dvec3(100)*calculate_caustic_flux(M, C, r_0)/static_cast<double>(N); // TODO: Dubbelkolla N
 			for (size_t n = 0; n < N; n++) {
 				double s = generateRandomValue();
 				double t = generateRandomValue();
@@ -214,7 +214,13 @@
 				glm::dvec3 points = glm::dvec3(point.coordinates[0], point.coordinates[1], point.coordinates[2]);
 				caustics_test.push_back(new kdtree_homemade::kd_Node(points, point.flux));
 
-				std::cout << flux_causticPhoton.x << ", " << flux_causticPhoton.y << ", " << flux_causticPhoton.z << "\n\n";
+				/*for (auto& temp : caustics_test) {
+					if (temp->position.z > -5) {
+						std::cout << temp->position.x << ", " << temp->position.y << ", " << temp->position.z << "\n\n";
+					}
+					
+				}*/
+				//std::cout << flux_causticPhoton.x << ", " << flux_causticPhoton.y << ", " << flux_causticPhoton.z << "\n\n";
 
 				
 
@@ -487,10 +493,10 @@
 				}
 				else { // If diffuse object
 					
-					rayPath->previous_ray->radiance = /*glm::dvec3(rayPath->previous_ray->hit_surface->color.r * rayPath->radiance.r,
+					rayPath->previous_ray->radiance = glm::dvec3(rayPath->previous_ray->hit_surface->color.r * rayPath->radiance.r,
 						rayPath->previous_ray->hit_surface->color.g * rayPath->radiance.g,
 						rayPath->previous_ray->hit_surface->color.b * rayPath->radiance.b) +
-						calculateDirectIllumination(rayPath->previous_ray) + */calculateCausticContribution(rayPath, KDtree);
+						calculateDirectIllumination(rayPath->previous_ray) + calculateCausticContribution(rayPath,KDtree);
 
 					
 					rayPath = rayPath->previous_ray;
@@ -502,6 +508,7 @@
 		glm::dvec3 calculateCausticContribution(Ray* ray,Kdtree::KdTree& KDtree) {
 			//std::vector<kdtree_homemade::kd_Node*> photons;
 			//glm::dvec3 point = glm::dvec3(0);
+			double radius = 0.002;
 			Kdtree::KdNodeVector result;
 			std::vector<double> point(3);
 			
@@ -510,7 +517,7 @@
 			point[2] = ray->start_point.z;
 			
 			//KDtree.find_photons(photons, KDtree.root, point, 0.2);
-			KDtree.range_nearest_neighbors(point, 0.2, &result);
+			KDtree.range_nearest_neighbors(point, radius, &result);
 			glm::dvec3 totalFlux = glm::dvec3(0.0);
 			/*for (kdtree_homemade::kd_Node* temp : photons)
 			{
@@ -526,6 +533,8 @@
 				totalFlux += temp.flux;
 				//std::cout << point[0] << ", " << point[1] << ", " << point[2] << "      " << temp.point[0] << ", " << temp.point[1] << ", " << temp.point[2] << "\n";
 			}
+			//std::cout << result.size() << "\n";
+			totalFlux /= (M_PI * radius * radius);
 			//std::cout << totalFlux.x << "\n";
 			//std::cout << result.size() << "\n";
 			//std::cout << totalFlux.x << ", " << totalFlux.y << ", " << totalFlux.z << "\n";
@@ -617,7 +626,7 @@
 			KDtree.set_distance(2);
 			//std::cout << "Points in kd-tree\n";
 			//print_nodes(tree.allnodes);
-			int samples = 50;
+			int samples = 35;
 			for (size_t z = 0; z < heightPixels; z++) {
 				std::clog << "\rScanlines remaining: " << (heightPixels - z) << ' ' << std::flush;
 				

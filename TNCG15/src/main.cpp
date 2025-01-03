@@ -29,7 +29,7 @@ int main()
 	//scene.push_back(sphere2);
 	//sceneObjects.push_back(sphere2);
 
-	Sphere* sphere4 = new Sphere(glm::dvec3(8, 0, -2), 1, glm::dvec3(0.5, 0.2, 0.8), 3, 0);
+	Sphere* sphere4 = new Sphere(glm::dvec3(8, 0, -3.5), 1, glm::dvec3(0.5, 0.2, 0.8), 3, 0);
 	scene.push_back(sphere4);
 	sceneObjects.push_back(sphere4);
 
@@ -75,7 +75,7 @@ int main()
 	//scene.push_back(test);
 	
 	//Lights ----------------------------------------------------------------------------------------
-	Rectangle* light1 = new Rectangle(glm::dvec3(6.5, -2, 4.99), glm::dvec3(6.5, 2, 4.99), glm::dvec3(9.5, 2, 4.99), glm::dvec3(9.5, -2, 4.99), glm::dvec3(1.0, 1.0, 1.0), 0, 0, true);
+	Rectangle* light1 = new Rectangle(glm::dvec3(6, -2, 4.99), glm::dvec3(6, 2, 4.99), glm::dvec3(10, 2, 4.99), glm::dvec3(10, -2, 4.99), glm::dvec3(1.0, 1.0, 1.0), 0, 0, true);
 	lights.push_back(light1);
 	scene.push_back(light1);
 	//-----------------------------------------------------------------------------------------------
